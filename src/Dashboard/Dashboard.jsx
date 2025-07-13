@@ -1,4 +1,8 @@
 import React, { useEffect, useState } from 'react';
+
+import { Line } from 'react-chartjs-2';
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
+
 import {
   Users,
   MessageSquare,
@@ -38,6 +42,46 @@ const Dashboard = () => {
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
+
+
+  // Register Chart.js components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
+
+  // Demo data for visualization
+  const demoAnalyticsData = {
+    dau: 1245,
+    wau: 8432,
+    mau: 35678,
+    activeChats: 342,
+    avgSessionDuration: 8.5, // in minutes
+    topQueries: [
+      { text: "How to reset password", count: 142 },
+      { text: "Account verification process", count: 98 },
+      { text: "Subscription pricing plans", count: 76 },
+      { text: "Feature availability", count: 65 },
+      { text: "Troubleshooting guide", count: 54 }
+    ],
+    userGrowth: {
+      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+      values: [12500, 14200, 16800, 19500, 22300, 25600]
+    },
+    feedbackDistribution: {
+      positive: 68,
+      negative: 12,
+      neutral: 20
+    }
+  };
+
+  // Use demo data if real data isn't available
+  const data = analyticsData || demoAnalyticsData;
 
   // Determine visible feedbacks based on showAll
   const visibleFeedbacks = showAll
@@ -176,106 +220,125 @@ const Dashboard = () => {
     }
   };
 
-const renderUserTable = () => (
-  <div className="card border-0 shadow-sm">
-    <div className="card-header bg-white border-bottom">
-      <div className="d-flex justify-content-between align-items-center">
-        <h5 className="card-title mb-0">All Users</h5>
-        <div>
-          <button
-            className="btn btn-sm btn-outline-secondary me-2"
-            onClick={() => exportToCSV(userList, 'users')}
-          >
-            <Download size={16} className="me-1" /> Export CSV
+  const renderUserTable = () => (
+    <div className="card border-0 shadow-sm">
+
+      <div className='mb-4'>
+          <button className='btn btn-outline-secondary'
+           onClick={() => setActiveTab('dashboard')}
+           >
+            Back To Dashboard
           </button>
-          <button
-            className="btn btn-sm btn-outline-secondary"
-            onClick={() => exportToPDF(userList, 'users', ['ID', 'Name', 'Email', 'Status', 'Tags', 'Device', 'Sessions', 'Last Active'])}
-          >
-            <FileText size={16} className="me-1" /> Export PDF
-          </button>
+      </div>
+
+      <div className="card-header bg-white border-bottom">
+        <div className="d-flex justify-content-between align-items-center">
+          <div className="d-flex align-items-center">
+            <button
+              className="btn btn-sm btn-outline-secondary me-2"
+              onClick={() => window.history.back()}
+              title="Go back to previous page"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path fillRule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z" />
+              </svg>
+            </button>
+            <h5 className="card-title mb-0">All Users</h5>
+          </div>
+          <div>
+            <button
+              className="btn btn-sm btn-outline-secondary me-2"
+              onClick={() => exportToCSV(userList, 'users')}
+            >
+              <Download size={16} className="me-1" /> Export CSV
+            </button>
+            <button
+              className="btn btn-sm btn-outline-secondary"
+              onClick={() => exportToPDF(userList, 'users', ['ID', 'Name', 'Email', 'Status', 'Tags', 'Device', 'Sessions', 'Last Active'])}
+            >
+              <FileText size={16} className="me-1" /> Export PDF
+            </button>
+          </div>
+        </div>
+      </div>
+      <div className="card-body">
+        <div className="table-responsive">
+          <table className="table table-hover">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Status</th>
+                <th>Tags</th>
+                <th>Device</th>
+                <th>Sessions</th>
+                <th>Last Active</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {userList.map(user => (
+                <tr key={user.id}>
+                  <td>{user.id}</td>
+                  <td>{user.name}</td>
+                  <td>{user.email}</td>
+                  <td>
+                    <span className={`badge ${user.active ? 'bg-success' : 'bg-secondary'}`}>
+                      {user.active ? 'Active' : 'Inactive'}
+                    </span>
+                  </td>
+                  <td>
+                    {user.tags?.map((tag, i) => (
+                      <span key={i} className={`badge ${tag === 'VIP' ? 'bg-warning text-dark' :
+                        tag === 'Beta Tester' ? 'bg-info' :
+                          tag === 'Abuser' ? 'bg-danger' : 'bg-secondary'
+                        } me-1`}>
+                        {tag}
+                      </span>
+                    ))}
+                  </td>
+                  <td>{user.device || 'Unknown'}</td>
+                  <td>{user.sessionCount || 0}</td>
+                  <td>{formatTimeDifference(user.lastActive)}</td>
+                  <td>
+                    <div className="d-flex">
+                      <button
+                        className="btn btn-sm btn-outline-primary me-1"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedUser(user);
+                        }}
+                      >
+                        <Edit size={14} />
+                      </button>
+                      <button
+                        className={`btn btn-sm ${user.active ? 'btn-outline-danger' : 'btn-outline-success'}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeactivateUser(user.id);
+                        }}
+                      >
+                        {user.active ? (
+                          <>
+                            <Power size={14} className="me-1" /> Deactivate
+                          </>
+                        ) : (
+                          <>
+                            <Power size={14} className="me-1" /> Activate
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
-    <div className="card-body">
-      <div className="table-responsive">
-        <table className="table table-hover">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Status</th>
-              <th>Tags</th>
-              <th>Device</th>
-              <th>Sessions</th>
-              <th>Last Active</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {userList.map(user => (
-              <tr key={user.id}>
-                <td>{user.id}</td>
-                <td>{user.name}</td>
-                <td>{user.email}</td>
-                <td>
-                  <span className={`badge ${user.active ? 'bg-success' : 'bg-secondary'}`}>
-                    {user.active ? 'Active' : 'Inactive'}
-                  </span>
-                </td>
-                <td>
-                  {user.tags?.map((tag, i) => (
-                    <span key={i} className={`badge ${
-                      tag === 'VIP' ? 'bg-warning text-dark' : 
-                      tag === 'Beta Tester' ? 'bg-info' : 
-                      tag === 'Abuser' ? 'bg-danger' : 'bg-secondary'
-                    } me-1`}>
-                      {tag}
-                    </span>
-                  ))}
-                </td>
-                <td>{user.device || 'Unknown'}</td>
-                <td>{user.sessionCount || 0}</td>
-                <td>{formatTimeDifference(user.lastActive)}</td>
-                <td>
-                  <div className="d-flex">
-                    <button 
-                      className="btn btn-sm btn-outline-primary me-1"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedUser(user);
-                      }}
-                    >
-                      <Edit size={14} />
-                    </button>
-                    <button
-                      className={`btn btn-sm ${user.active ? 'btn-outline-danger' : 'btn-outline-success'}`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeactivateUser(user.id);
-                      }}
-                    >
-                      {user.active ? (
-                        <>
-                          <Power size={14} className="me-1" /> Deactivate
-                        </>
-                      ) : (
-                        <>
-                          <Power size={14} className="me-1" /> Activate
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-);
+  );
 
   const renderUserProfile = () => (
     <div className="card border-0 shadow-sm">
@@ -296,7 +359,7 @@ const renderUserTable = () => (
                 <p><strong>Name:</strong> {selectedUser.name}</p>
                 <p><strong>Email:</strong> {selectedUser.email}</p>
                 <p><strong>Joined:</strong> {new Date(selectedUser.createdAt).toLocaleDateString()}</p>
-                <p><strong>Status:</strong> 
+                <p><strong>Status:</strong>
                   <span className={`badge ${selectedUser.active ? 'bg-success' : 'bg-secondary'} ms-2`}>
                     {selectedUser.active ? 'Active' : 'Inactive'}
                   </span>
@@ -372,157 +435,6 @@ const renderUserTable = () => (
     </div>
   );
 
-const renderAnalytics = () => {
-  // Demo data for visualization
-  const demoAnalyticsData = {
-    dau: 1245,
-    wau: 8432,
-    mau: 35678,
-    activeChats: 342,
-    avgSessionDuration: 8.5, // in minutes
-    topQueries: [
-      { text: "How to reset password", count: 142 },
-      { text: "Account verification process", count: 98 },
-      { text: "Subscription pricing plans", count: 76 },
-      { text: "Feature availability", count: 65 },
-      { text: "Troubleshooting guide", count: 54 }
-    ],
-    userGrowth: {
-      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-      values: [12500, 14200, 16800, 19500, 22300, 25600]
-    },
-    feedbackDistribution: {
-      positive: 68,
-      negative: 12,
-      neutral: 20
-    }
-  };
-
-  // Use demo data if real data isn't available
-  const data = analyticsData || demoAnalyticsData;
-
-  return (
-    <div className="card border-0 shadow-sm">
-      <div className="card-header bg-white border-bottom">
-        <div className="d-flex justify-content-between align-items-center">
-          <h5 className="card-title mb-0">System Analytics</h5>
-          <div className="btn-group">
-            <button className="btn btn-sm btn-outline-secondary">
-              <Download size={16} className="me-1" /> Export Report
-            </button>
-          </div>
-        </div>
-      </div>
-      <div className="card-body">
-        <div className="row">
-          {/* User Metrics */}
-          <div className="col-md-6">
-            <div className="card mb-4">
-              <div className="card-header d-flex justify-content-between align-items-center">
-                <h6 className="mb-0">User Metrics</h6>
-                <span className="badge bg-info">Last 30 Days</span>
-              </div>
-              <div className="card-body">
-                <div className="row text-center">
-                  <div className="col-4">
-                    <h3>{data.dau.toLocaleString()}</h3>
-                    <small className="text-muted">Daily Active Users</small>
-                  </div>
-                  <div className="col-4">
-                    <h3>{data.wau.toLocaleString()}</h3>
-                    <small className="text-muted">Weekly Active Users</small>
-                  </div>
-                  <div className="col-4">
-                    <h3>{data.mau.toLocaleString()}</h3>
-                    <small className="text-muted">Monthly Active Users</small>
-                  </div>
-                </div>
-                <hr />
-                <div className="row text-center">
-                  <div className="col-6">
-                    <h3>{data.activeChats}</h3>
-                    <small className="text-muted">Active Chats</small>
-                  </div>
-                  <div className="col-6">
-                    <h3>{data.avgSessionDuration}m</h3>
-                    <small className="text-muted">Avg Session Duration</small>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* User Growth Chart (Placeholder) */}
-            <div className="card mb-4">
-              <div className="card-header">
-                <h6 className="mb-0">User Growth Trend</h6>
-              </div>
-              <div className="card-body">
-                <div className="chart-placeholder" style={{ height: '200px', backgroundColor: '#f8f9fa', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <div className="text-center text-muted">
-                    <BarChart2 size={32} className="mb-2" />
-                    <p>User growth chart visualization</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Top Queries */}
-          <div className="col-md-6">
-            <div className="card mb-4">
-              <div className="card-header d-flex justify-content-between align-items-center">
-                <h6 className="mb-0">Top Queries</h6>
-                <span className="badge bg-primary">Last 7 Days</span>
-              </div>
-              <div className="card-body">
-                <ul className="list-group">
-                  {data.topQueries.map((query, index) => (
-                    <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
-                      <div className="text-truncate" style={{ maxWidth: '70%' }} title={query.text}>
-                        {query.text}
-                      </div>
-                      <span className="badge bg-primary rounded-pill">{query.count}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-
-            {/* Feedback Distribution (Placeholder) */}
-            <div className="card">
-              <div className="card-header">
-                <h6 className="mb-0">Feedback Distribution</h6>
-              </div>
-              <div className="card-body">
-                <div className="row text-center">
-                  <div className="col-4">
-                    <div className="display-4 text-success">{data.feedbackDistribution.positive}%</div>
-                    <small className="text-muted">Positive</small>
-                  </div>
-                  <div className="col-4">
-                    <div className="display-4 text-danger">{data.feedbackDistribution.negative}%</div>
-                    <small className="text-muted">Negative</small>
-                  </div>
-                  <div className="col-4">
-                    <div className="display-4 text-secondary">{data.feedbackDistribution.neutral}%</div>
-                    <small className="text-muted">Neutral</small>
-                  </div>
-                </div>
-                <div className="chart-placeholder mt-3" style={{ height: '100px', backgroundColor: '#f8f9fa', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <div className="text-center text-muted">
-                    <PieChart size={24} className="mb-1" />
-                    <small>Feedback distribution chart</small>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
   return (
     <div className="container-fluid">
       <div className="d-flex justify-content-between align-items-center mb-4">
@@ -530,7 +442,8 @@ const renderAnalytics = () => {
           <h1 className="h2 mb-1">Dashboard Overview</h1>
           <p className="text-muted mb-0">Welcome back! Here's what's happening with your chatbot system.</p>
         </div>
-        <div>
+
+        {/* <div>
           <button 
             className="btn btn-outline-secondary me-2"
             onClick={() => setActiveTab('analytics')}
@@ -543,7 +456,8 @@ const renderAnalytics = () => {
           >
             <Users size={16} className="me-1" /> Users
           </button>
-        </div>
+        </div> */}
+
       </div>
 
       {activeTab === 'dashboard' && (
@@ -552,7 +466,16 @@ const renderAnalytics = () => {
           <div className="row g-4 mb-4">
             {stats.map((stat, index) => (
               <div key={index} className="col-xl-3 col-md-6">
-                <div className="card h-100 border-0 shadow-sm">
+                <div
+                  className="card h-100 border-0 shadow-sm"
+                  onClick={() => stat.title === 'Total Users' ? setActiveTab('users') : null}
+                  style={{
+                    cursor: stat.title === 'Total Users' ? 'pointer' : 'default',
+                    transition: 'transform 0.2s ease'
+                  }}
+                  onMouseOver={(e) => stat.title === 'Total Users' ? e.currentTarget.style.transform = 'translateY(-2px)' : null}
+                  onMouseOut={(e) => stat.title === 'Total Users' ? e.currentTarget.style.transform = '' : null}
+                >
                   <div className="card-body">
                     <div className="d-flex align-items-center justify-content-between">
                       <div>
@@ -570,6 +493,179 @@ const renderAnalytics = () => {
                 </div>
               </div>
             ))}
+          </div>
+
+          <div className="card border-0 shadow-sm">
+            <div className="card-header bg-white border-bottom">
+              <div className="d-flex justify-content-between align-items-center">
+                <h5 className="card-title mb-0">System Analytics</h5>
+                <div className="btn-group">
+                  <button className="btn btn-sm btn-outline-secondary">
+                    <Download size={16} className="me-1" /> Export Report
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div className="card-body">
+              <div className="row">
+                {/* User Metrics */}
+                <div className="col-md-6">
+                  <div className="card mb-4">
+                    <div className="card-header d-flex justify-content-between align-items-center">
+                      <h6 className="mb-0">User Metrics</h6>
+                      <span className="badge bg-info">Last 30 Days</span>
+                    </div>
+                    <div className="card-body">
+                      <div className="row text-center">
+                        <div className="col-4">
+                          <h3>{data.dau.toLocaleString()}</h3>
+                          <small className="text-muted">Daily Active Users</small>
+                        </div>
+                        <div className="col-4">
+                          <h3>{data.wau.toLocaleString()}</h3>
+                          <small className="text-muted">Weekly Active Users</small>
+                        </div>
+                        <div className="col-4">
+                          <h3>{data.mau.toLocaleString()}</h3>
+                          <small className="text-muted">Monthly Active Users</small>
+                        </div>
+                      </div>
+                      <hr />
+                      <div className="row text-center">
+                        <div className="col-6">
+                          <h3>{data.activeChats}</h3>
+                          <small className="text-muted">Active Chats</small>
+                        </div>
+                        <div className="col-6">
+                          <h3>{data.avgSessionDuration}m</h3>
+                          <small className="text-muted">Avg Session Duration</small>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* User Growth Chart (Placeholder) */}
+                 <div className="card mb-4">
+  <div className="card-header d-flex justify-content-between align-items-center">
+    <h6 className="mb-0">User Growth Trend</h6>
+    <div className="btn-group">
+      <button className="btn btn-sm btn-outline-secondary">Last 30 Days</button>
+      <button className="btn btn-sm btn-outline-secondary">Last 90 Days</button>
+    </div>
+  </div>
+  <div className="card-body">
+    <div style={{ height: '300px' }}>
+      <Line
+        data={{
+          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+          datasets: [
+            {
+              label: 'New Users',
+              data: [120, 190, 170, 220, 260, 300, 350],
+              borderColor: 'rgb(75, 192, 192)',
+              backgroundColor: 'rgba(75, 192, 192, 0.2)',
+              tension: 0.3,
+              fill: true
+            },
+            {
+              label: 'Active Users',
+              data: [80, 120, 140, 160, 190, 220, 250],
+              borderColor: 'rgb(54, 162, 235)',
+              backgroundColor: 'rgba(54, 162, 235, 0.2)',
+              tension: 0.3,
+              fill: true
+            }
+          ]
+        }}
+        options={{
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'top',
+            },
+            tooltip: {
+              mode: 'index',
+              intersect: false,
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: {
+                drawBorder: false
+              },
+              ticks: {
+                callback: function(value) {
+                  return value.toLocaleString();
+                }
+              }
+            },
+            x: {
+              grid: {
+                display: false
+              }
+            }
+          }
+        }}
+      />
+    </div>
+  </div>
+</div>
+                </div>
+
+                {/* Top Queries */}
+                <div className="col-md-6">
+                  <div className="card mb-4">
+                    <div className="card-header d-flex justify-content-between align-items-center">
+                      <h6 className="mb-0">Top Queries</h6>
+                      <span className="badge bg-primary">Last 7 Days</span>
+                    </div>
+                    <div className="card-body">
+                      <ul className="list-group">
+                        {data.topQueries.map((query, index) => (
+                          <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
+                            <div className="text-truncate" style={{ maxWidth: '70%' }} title={query.text}>
+                              {query.text}
+                            </div>
+                            <span className="badge bg-primary rounded-pill">{query.count}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+
+                  {/* Feedback Distribution (Placeholder) */}
+                  <div className="card">
+                    <div className="card-header">
+                      <h6 className="mb-0">Feedback Distribution</h6>
+                    </div>
+                    <div className="card-body">
+                      <div className="row text-center">
+                        <div className="col-4">
+                          <div className="display-4 text-success">{data.feedbackDistribution.positive}%</div>
+                          <small className="text-muted">Positive</small>
+                        </div>
+                        <div className="col-4">
+                          <div className="display-4 text-danger">{data.feedbackDistribution.negative}%</div>
+                          <small className="text-muted">Negative</small>
+                        </div>
+                        <div className="col-4">
+                          <div className="display-4 text-secondary">{data.feedbackDistribution.neutral}%</div>
+                          <small className="text-muted">Neutral</small>
+                        </div>
+                      </div>
+                      <div className="chart-placeholder mt-3" style={{ height: '100px', backgroundColor: '#f8f9fa', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <div className="text-center text-muted">
+                          <PieChart size={24} className="mb-1" />
+                          <small>Feedback distribution chart</small>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Recent Feedbacks */}
