@@ -176,61 +176,106 @@ const Dashboard = () => {
     }
   };
 
-  const renderUserTable = () => (
-    <div className="card border-0 shadow-sm">
-      <div className="card-header bg-white border-bottom">
-        <div className="d-flex justify-content-between align-items-center">
-          <h5 className="card-title mb-0">All Users</h5>
+const renderUserTable = () => (
+  <div className="card border-0 shadow-sm">
+    <div className="card-header bg-white border-bottom">
+      <div className="d-flex justify-content-between align-items-center">
+        <h5 className="card-title mb-0">All Users</h5>
+        <div>
           <button
-            className="btn btn-sm btn-outline-secondary"
+            className="btn btn-sm btn-outline-secondary me-2"
             onClick={() => exportToCSV(userList, 'users')}
           >
             <Download size={16} className="me-1" /> Export CSV
           </button>
-        </div>
-      </div>
-      <div className="card-body">
-        <div className="table-responsive">
-          <table className="table table-hover">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Status</th>
-                <th>Device</th>
-                <th>Sessions</th>
-                <th>Last Active</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {userList.map(user => (
-                <tr key={user.id} onClick={() => setSelectedUser(user)} style={{ cursor: 'pointer' }}>
-                  <td>{user.id}</td>
-                  <td>{user.name}</td>
-                  <td>{user.email}</td>
-                  <td>
-                    <span className={`badge ${user.active ? 'bg-success' : 'bg-secondary'}`}>
-                      {user.active ? 'Active' : 'Inactive'}
-                    </span>
-                  </td>
-                  <td>{user.device || 'Unknown'}</td>
-                  <td>{user.sessionCount || 0}</td>
-                  <td>{formatTimeDifference(user.lastActive)}</td>
-                  <td>
-                    <button className="btn btn-sm btn-outline-primary">
-                      <Edit size={14} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <button
+            className="btn btn-sm btn-outline-secondary"
+            onClick={() => exportToPDF(userList, 'users', ['ID', 'Name', 'Email', 'Status', 'Tags', 'Device', 'Sessions', 'Last Active'])}
+          >
+            <FileText size={16} className="me-1" /> Export PDF
+          </button>
         </div>
       </div>
     </div>
-  );
+    <div className="card-body">
+      <div className="table-responsive">
+        <table className="table table-hover">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Status</th>
+              <th>Tags</th>
+              <th>Device</th>
+              <th>Sessions</th>
+              <th>Last Active</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {userList.map(user => (
+              <tr key={user.id}>
+                <td>{user.id}</td>
+                <td>{user.name}</td>
+                <td>{user.email}</td>
+                <td>
+                  <span className={`badge ${user.active ? 'bg-success' : 'bg-secondary'}`}>
+                    {user.active ? 'Active' : 'Inactive'}
+                  </span>
+                </td>
+                <td>
+                  {user.tags?.map((tag, i) => (
+                    <span key={i} className={`badge ${
+                      tag === 'VIP' ? 'bg-warning text-dark' : 
+                      tag === 'Beta Tester' ? 'bg-info' : 
+                      tag === 'Abuser' ? 'bg-danger' : 'bg-secondary'
+                    } me-1`}>
+                      {tag}
+                    </span>
+                  ))}
+                </td>
+                <td>{user.device || 'Unknown'}</td>
+                <td>{user.sessionCount || 0}</td>
+                <td>{formatTimeDifference(user.lastActive)}</td>
+                <td>
+                  <div className="d-flex">
+                    <button 
+                      className="btn btn-sm btn-outline-primary me-1"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedUser(user);
+                      }}
+                    >
+                      <Edit size={14} />
+                    </button>
+                    <button
+                      className={`btn btn-sm ${user.active ? 'btn-outline-danger' : 'btn-outline-success'}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeactivateUser(user.id);
+                      }}
+                    >
+                      {user.active ? (
+                        <>
+                          <Power size={14} className="me-1" /> Deactivate
+                        </>
+                      ) : (
+                        <>
+                          <Power size={14} className="me-1" /> Activate
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+);
 
   const renderUserProfile = () => (
     <div className="card border-0 shadow-sm">
