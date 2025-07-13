@@ -1,0 +1,43 @@
+.video-link {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    text-decoration: none;
+    color: #000;
+    flex-direction: row;
+}
+
+.video-thumbnail {
+    width: 160px;
+    height: 90px;
+    border-radius: 8px;
+}
+
+.video-details {
+    flex: 1;
+}
+
+.video-title {
+    margin: 0;
+    font-weight: bold;
+}
+
+/* Responsive: stack video title below thumbnail on small screens */
+@media (max-width: 576px) {
+    .video-link {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .video-thumbnail {
+        width: 100%;
+        max-width: 320px;
+        height: auto;
+    }
+
+    .video-title {
+        margin-top: 8px;
+        font-size: 14px;
+    }
+}

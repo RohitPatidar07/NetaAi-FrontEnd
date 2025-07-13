@@ -1,0 +1,72 @@
+/* Modal entrance animation */
+@keyframes popupFadeIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.7) translateY(-50px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* Stylish modal content */
+.modal-content {
+    border-radius: 20px;
+    background: linear-gradient(135deg, #ffffff, #e8f0fe);
+    animation: popupFadeIn 0.5s ease-out;
+    border: none;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+    transition: transform 0.3s ease;
+}
+
+/* Text styling */
+.modal-title {
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: #032231;
+}
+
+.modal-body p {
+    font-size: 1rem;
+    color: #333;
+}
+
+/* Button enhancements */
+.modal-footer .btn-primary {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 30px;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.modal-footer .btn-primary:hover {
+    transform: scale(1.05);
+    background: linear-gradient(135deg, #0056b3, #004085);
+    box-shadow: 0 5px 15px rgba(0, 123, 255, 0.4);
+}
+
+.bouncing-arrow {
+    font-size: 2rem;
+    text-align: center;
+    animation: bounce 1.2s infinite;
+    color: #007bff;
+}
+
+@keyframes bounce {
+    0% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(10px);
+    }
+
+    100% {
+        transform: translateY(0);
+    }
+}

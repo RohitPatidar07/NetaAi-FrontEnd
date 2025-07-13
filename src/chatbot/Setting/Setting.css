@@ -1,0 +1,431 @@
+.form-container {
+  max-width: 600px;
+  margin: auto;
+  padding: 30px;
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+}
+
+.profile-img {
+  width: 120px;
+  height: 120px;
+  background-color: #e9ecef;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: auto;
+  font-size: 2.5rem;
+  color: #0e6973;
+  cursor: pointer;
+  position: relative;
+}
+
+.profile-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 15px;
+}
+
+
+#profile-input {
+  display: none;
+}
+
+
+
+/* UpDate Password */
+
+.update-password-container {
+  max-width: 500px;
+  margin: 60px auto;
+  padding: 30px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+}
+
+.btn-gradient {
+  background: #0e6973;
+  border: none;
+}
+
+.btn-gradient:hover {
+  opacity: 0.95;
+}
+
+/* Open Request css */
+
+.deletion-form-container {
+  max-width: 550px;
+  margin: 60px auto;
+  padding: 30px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+}
+
+.logo {
+  width: 120px;
+  margin: 0 auto 20px;
+}
+
+.input-group-text {
+  background-color: #fff;
+  border-right: none;
+  color: #0e6973;
+}
+
+
+
+.form-control:focus {
+  box-shadow: none;
+  border-color: #0e6973;
+}
+
+.btn-primary {
+  background-color: #0e6973;
+  border: none;
+}
+
+.btn-primary:hover {
+  background-color: #09545b;
+}
+
+
+.btn-green {
+  background-color: #0e6973;
+  border: none;
+}
+
+.btn-green:hover {
+  background-color: #044146;
+}
+
+@media (max-width: 576px) {
+  .input-group-text {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+}
+
+
+/* Chat Historyt */
+
+.chat-card {
+  background-color: #f1f3f5;
+  border-radius: 10px;
+}
+
+.chat-card img {
+  width: 40px;
+  height: 40px;
+}
+
+.chat-card .trash-icon {
+  color: red;
+  cursor: pointer;
+}
+
+.neta-princing-plans {
+  overflow-y: scroll;
+  scrollbar-width: none;
+}
+
+
+
+/* view plans css */
+
+/* Custom CSS for Pricing Plans */
+
+
+
+.logo-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.neta-logo {
+  height: 60px;
+}
+
+.title-heading {
+  font-weight: 900;
+  font-family: 'Arial', sans-serif;
+  font-size: 40px;
+}
+
+.plan-card {
+  min-height: 100%;
+  border-radius: 10px;
+}
+
+.plan-icon {
+  font-size: 40px;
+}
+
+.plan-btn {
+  background-color: #165286;
+  color: #fff;
+  border: 1px solid #fff;
+}
+
+.plan-btn:hover {
+  background-color: #2297cb;
+  color: #fff;
+  border: 1px solid #fff;
+}
+
+/* settingpage.jsx css */
+
+.nav-link:hover {
+  color: #0066cc !important;
+}
+
+
+.plan-5 {
+  background-color: #f8fafc;
+  /* Light gray background */
+  border-radius: 12px;
+  padding: 24px 20px;
+  text-align: left;
+  color: #000;
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease-in-out;
+}
+
+.plan-5 h5 {
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 6px;
+}
+
+.plan-5 h3 {
+  font-size: 1.75rem;
+  color: #0070f3;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.plan-5 h3 span {
+  font-size: 1rem;
+  font-weight: normal;
+  color: #6c757d;
+  margin-left: 2px;
+}
+
+.plan-5 ul {
+  padding: 0;
+  margin: 15px 0;
+  list-style: none;
+  font-size: 0.95rem;
+  color: #4b5563;
+}
+
+.plan-5 ul li {
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.plan-5 ul li::before {
+  content: "✔";
+  color: #22c55e;
+  /* Tailwind's green-500 */
+  font-weight: bold;
+  margin-right: 8px;
+}
+
+.plan-5 button {
+  background-color: #e2e8f0;
+  color: #1f2937;
+  border: none;
+  padding: 10px;
+  width: 100%;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 6px;
+  transition: background-color 0.3s ease;
+}
+
+.plan-5 button:hover {
+  background-color: #cbd5e1;
+  /* Hover effect */
+  color: #000;
+  cursor: pointer;
+}
+
+
+/* -------------------------- */
+.plan-6 {
+  background-color: #156df0;
+  /* Bright Blue */
+  border-radius: 16px;
+  padding: 24px 20px;
+  color: #fff;
+  position: relative;
+  text-align: left;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease-in-out;
+}
+
+/* .popular-plan {
+  position: 'absolute';
+  top: '25px';
+  right: '0px';
+  z-index: 1;
+  transform: 'rotate(45deg)';
+  padding: '5px 10px';
+  font-size: '0.9rem';
+} */
+
+
+.month-heading {
+  color: #000;
+}
+
+.plan-6 h5 {
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 6px;
+}
+
+.plan-6 h3 {
+  font-size: 1.75rem;
+  color: #fff;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.plan-6 h3 span {
+  font-size: 1rem;
+  font-weight: normal;
+  color: #dbeafe;
+  margin-left: 2px;
+}
+
+.plan-6 ul {
+  list-style: none;
+  font-size: 0.95rem;
+  color: #d1e9ff;
+}
+
+.plan-6 ul li {
+
+  display: flex;
+  align-items: center;
+}
+
+.plan-6 ul li::before {
+  content: "✔";
+  color: #00ffae;
+  font-weight: bold;
+  margin-right: 8px;
+}
+
+.plan-6 button {
+  background-color: #fff;
+  color: #156df0;
+  border: none;
+  padding: 12px;
+  width: 100%;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 8px;
+  margin-top: 12px;
+  transition: background-color 0.3s ease;
+}
+
+.plan-6 button:hover {
+  background-color: #e5edff;
+  color: #0070f3;
+  cursor: pointer;
+}
+
+/* Yellow Popular Ribbon */
+.plan-6 .badge-popular {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: #ffc107;
+  color: #000;
+  padding: 4px 12px;
+  font-weight: 600;
+  font-size: 0.75rem;
+  border-bottom-left-radius: 10px;
+  border-top-right-radius: 16px;
+}
+
+/* -------------------------- */
+.plan-7 {
+  background-color: #0d1e2b;
+  /* Dark Navy */
+  border-radius: 16px;
+  padding: 24px 20px;
+  color: #fff;
+  text-align: left;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease-in-out;
+}
+
+.plan-7 h5 {
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 6px;
+}
+
+.plan-7 h3 {
+  font-size: 1.75rem;
+  font-weight: bold;
+  color: #14d8ff;
+  margin-bottom: 10px;
+}
+
+.plan-7 h3 span {
+  font-size: 1rem;
+  font-weight: normal;
+  color: #9bdfff;
+  margin-left: 2px;
+}
+
+.plan-7 ul {
+  padding: 0;
+  margin: 15px 0;
+  list-style: none;
+  font-size: 0.95rem;
+  color: #cfeeff;
+}
+
+.plan-7 ul li {
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.plan-7 ul li::before {
+  content: "✔";
+  color: #00ffae;
+  font-weight: bold;
+  margin-right: 8px;
+}
+
+.plan-7 button {
+  background-color: #0dcaf0;
+  color: #fff;
+  border: none;
+  padding: 12px;
+  width: 100%;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 8px;
+  margin-top: 12px;
+  transition: background-color 0.3s ease;
+}
+
+.plan-7 button:hover {
+  background-color: #12b8dd;
+  cursor: pointer;
+}

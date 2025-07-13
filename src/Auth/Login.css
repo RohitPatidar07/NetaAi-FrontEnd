@@ -1,0 +1,25 @@
+.auth-container {
+  background: linear-gradient(to right, #2297cb, #419df9);
+}
+
+.auth-card {
+  padding-left: 2px;
+  background-color: #ffffff;
+  border-radius: 16px;
+  padding: 30px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
+}
+
+.login-btn{
+  background-color:#0e3b73;
+}
+.ai-premium-btn{
+  background-color: #0066cc;
+  color: white;
+  width: 100%;
+}
+.ai-premium-btn:hover{
+   background-color: #0849a4;
+  color: white;
+  width: 100%;
+}

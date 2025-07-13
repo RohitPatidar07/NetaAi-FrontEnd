@@ -1,0 +1,85 @@
+/* Privacy Css */
+
+
+.neta-header {
+  background-color: #343a40;
+  color: white;
+  padding: 1rem;
+}
+
+.neta-btn-my-account {
+  background-color: #2864d4;
+  color: white;
+}
+
+.neta-logo {
+  font-weight: bold;
+  font-size: 1.5rem;
+}
+
+.neta-my-account-btn {
+  font-size: 0.875rem;
+}
+
+.neta-heading-section {
+  color: #0066cc;
+  font-size: 1.3rem;
+  margin-top: 2rem;
+}
+
+.neta-text,
+.neta-list li {
+  font-size: 0.95rem;
+}
+
+.neta-footer {
+  margin-top: 4rem;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+/* Trems Css */
+.neta-terms-wrapper {
+  padding: 2rem;
+}
+
+.neta-terms-section-title {
+  font-size: 20px;
+  font-weight: 24px;
+  color: #333;
+}
+
+.neta-terms-section-content {
+  margin-top: 0.75rem;
+  font-size: 16px;
+  color: #555;
+  margin-bottom: 25px;
+}
+
+.neta-terms-header {
+  background-color: #343a40;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 2rem;
+  height: 100px;
+}
+
+.neta-terms-my-account-btn {
+  background-color: #0066cc;
+  color: white;
+}
+
+.neta-terms-my-account-btn:hover {
+  background-color: #08449f;
+  color: white;
+}
+
+.neta-terms-logo-container {
+  /* Optional: add logo-specific styling here */
+}
+
+@media (max-width: 768px) {
+  .neta-terms-wrapper {
+    padding: 1rem;
+  }
+}

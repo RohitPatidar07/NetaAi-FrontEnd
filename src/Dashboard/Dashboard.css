@@ -1,0 +1,18 @@
+.table tbody tr:nth-child(odd) {
+    background-color: transparent;
+}
+
+.table tbody tr:nth-child(even) {
+    background-color: #e0e5eb;
+}
+
+.question-column {
+    width: auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.time-column {
+    width: auto;
+    white-space: nowrap;
+}
