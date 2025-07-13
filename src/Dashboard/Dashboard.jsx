@@ -372,51 +372,148 @@ const renderUserTable = () => (
     </div>
   );
 
-  const renderAnalytics = () => (
+const renderAnalytics = () => {
+  // Demo data for visualization
+  const demoAnalyticsData = {
+    dau: 1245,
+    wau: 8432,
+    mau: 35678,
+    activeChats: 342,
+    avgSessionDuration: 8.5, // in minutes
+    topQueries: [
+      { text: "How to reset password", count: 142 },
+      { text: "Account verification process", count: 98 },
+      { text: "Subscription pricing plans", count: 76 },
+      { text: "Feature availability", count: 65 },
+      { text: "Troubleshooting guide", count: 54 }
+    ],
+    userGrowth: {
+      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+      values: [12500, 14200, 16800, 19500, 22300, 25600]
+    },
+    feedbackDistribution: {
+      positive: 68,
+      negative: 12,
+      neutral: 20
+    }
+  };
+
+  // Use demo data if real data isn't available
+  const data = analyticsData || demoAnalyticsData;
+
+  return (
     <div className="card border-0 shadow-sm">
       <div className="card-header bg-white border-bottom">
-        <h5 className="card-title mb-0">System Analytics</h5>
+        <div className="d-flex justify-content-between align-items-center">
+          <h5 className="card-title mb-0">System Analytics</h5>
+          <div className="btn-group">
+            <button className="btn btn-sm btn-outline-secondary">
+              <Download size={16} className="me-1" /> Export Report
+            </button>
+          </div>
+        </div>
       </div>
       <div className="card-body">
         <div className="row">
+          {/* User Metrics */}
           <div className="col-md-6">
             <div className="card mb-4">
-              <div className="card-header">
-                <h6>User Growth</h6>
+              <div className="card-header d-flex justify-content-between align-items-center">
+                <h6 className="mb-0">User Metrics</h6>
+                <span className="badge bg-info">Last 30 Days</span>
               </div>
               <div className="card-body">
-                <div className="d-flex justify-content-around text-center">
-                  <div>
-                    <h3>{analyticsData?.dau || '0'}</h3>
-                    <small className="text-muted">DAU</small>
+                <div className="row text-center">
+                  <div className="col-4">
+                    <h3>{data.dau.toLocaleString()}</h3>
+                    <small className="text-muted">Daily Active Users</small>
                   </div>
-                  <div>
-                    <h3>{analyticsData?.wau || '0'}</h3>
-                    <small className="text-muted">WAU</small>
+                  <div className="col-4">
+                    <h3>{data.wau.toLocaleString()}</h3>
+                    <small className="text-muted">Weekly Active Users</small>
                   </div>
-                  <div>
-                    <h3>{analyticsData?.mau || '0'}</h3>
-                    <small className="text-muted">MAU</small>
+                  <div className="col-4">
+                    <h3>{data.mau.toLocaleString()}</h3>
+                    <small className="text-muted">Monthly Active Users</small>
+                  </div>
+                </div>
+                <hr />
+                <div className="row text-center">
+                  <div className="col-6">
+                    <h3>{data.activeChats}</h3>
+                    <small className="text-muted">Active Chats</small>
+                  </div>
+                  <div className="col-6">
+                    <h3>{data.avgSessionDuration}m</h3>
+                    <small className="text-muted">Avg Session Duration</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* User Growth Chart (Placeholder) */}
+            <div className="card mb-4">
+              <div className="card-header">
+                <h6 className="mb-0">User Growth Trend</h6>
+              </div>
+              <div className="card-body">
+                <div className="chart-placeholder" style={{ height: '200px', backgroundColor: '#f8f9fa', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div className="text-center text-muted">
+                    <BarChart2 size={32} className="mb-2" />
+                    <p>User growth chart visualization</p>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
+          {/* Top Queries */}
           <div className="col-md-6">
             <div className="card mb-4">
-              <div className="card-header">
-                <h6>Top Queries</h6>
+              <div className="card-header d-flex justify-content-between align-items-center">
+                <h6 className="mb-0">Top Queries</h6>
+                <span className="badge bg-primary">Last 7 Days</span>
               </div>
               <div className="card-body">
                 <ul className="list-group">
-                  {analyticsData?.topQueries?.map((query, index) => (
+                  {data.topQueries.map((query, index) => (
                     <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
-                      {query.text}
+                      <div className="text-truncate" style={{ maxWidth: '70%' }} title={query.text}>
+                        {query.text}
+                      </div>
                       <span className="badge bg-primary rounded-pill">{query.count}</span>
                     </li>
                   ))}
                 </ul>
+              </div>
+            </div>
+
+            {/* Feedback Distribution (Placeholder) */}
+            <div className="card">
+              <div className="card-header">
+                <h6 className="mb-0">Feedback Distribution</h6>
+              </div>
+              <div className="card-body">
+                <div className="row text-center">
+                  <div className="col-4">
+                    <div className="display-4 text-success">{data.feedbackDistribution.positive}%</div>
+                    <small className="text-muted">Positive</small>
+                  </div>
+                  <div className="col-4">
+                    <div className="display-4 text-danger">{data.feedbackDistribution.negative}%</div>
+                    <small className="text-muted">Negative</small>
+                  </div>
+                  <div className="col-4">
+                    <div className="display-4 text-secondary">{data.feedbackDistribution.neutral}%</div>
+                    <small className="text-muted">Neutral</small>
+                  </div>
+                </div>
+                <div className="chart-placeholder mt-3" style={{ height: '100px', backgroundColor: '#f8f9fa', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div className="text-center text-muted">
+                    <PieChart size={24} className="mb-1" />
+                    <small>Feedback distribution chart</small>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -424,6 +521,7 @@ const renderUserTable = () => (
       </div>
     </div>
   );
+};
 
   return (
     <div className="container-fluid">
