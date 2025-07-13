@@ -103,6 +103,8 @@ function App() {
           <Route path="/unauthorized" element={<Unauthorized />} />
 
           <Route path="/demo" element={<ClaudeInterface />} />
+          {/* handle all  */}
+          <Route path="*" element={ <div>No Page exists</div>} />
         </Routes>
       </Router>
 
