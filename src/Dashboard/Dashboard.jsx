@@ -56,32 +56,61 @@ const Dashboard = () => {
   );
 
   // Demo data for visualization
-  const demoAnalyticsData = {
-    dau: 1245,
-    wau: 8432,
-    mau: 35678,
-    activeChats: 342,
-    avgSessionDuration: 8.5, // in minutes
-    topQueries: [
-      { text: "How to reset password", count: 142 },
-      { text: "Account verification process", count: 98 },
-      { text: "Subscription pricing plans", count: 76 },
-      { text: "Feature availability", count: 65 },
-      { text: "Troubleshooting guide", count: 54 }
-    ],
-    userGrowth: {
-      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-      values: [12500, 14200, 16800, 19500, 22300, 25600]
-    },
-    feedbackDistribution: {
-      positive: 68,
-      negative: 12,
-      neutral: 20
-    }
-  };
+  // const demoAnalyticsData = {
+  //   dau: 1245,
+  //   wau: 8432,
+  //   mau: 35678,
+  //   activeChats: 342,
+  //   avgSessionDuration: 8.5, // in minutes
+  //   topQueries: [
+  //     { text: "How to reset password", count: 142 },
+  //     { text: "Account verification process", count: 98 },
+  //     { text: "Subscription pricing plans", count: 76 },
+  //     { text: "Feature availability", count: 65 },
+  //     { text: "Troubleshooting guide", count: 54 }
+  //   ],
+  //   userGrowth: {
+  //     labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+  //     values: [12500, 14200, 16800, 19500, 22300, 25600]
+  //   },
+  //   feedbackDistribution: {
+  //     positive: 68,
+  //     negative: 12,
+  //     neutral: 20
+  //   }
+  // };
 
   // Use demo data if real data isn't available
-  const data = analyticsData || demoAnalyticsData;
+  // const data = analyticsData || demoAnalyticsData;
+
+  const data = {
+  dau: 320,
+  wau: 980,
+  mau: 2100,
+  totalSessions: 5500,
+  avgSessionDuration: 8.4,
+  platformUsage: {
+    web: 1500,
+    ios: 900,
+    android: 700
+  },
+  conversion: {
+    free: 1200,
+    trial: 300,
+    paid: 600
+  },
+  topTopics: [
+    { text: 'How to reset password?', count: 102 },
+    { text: 'NEC lookup guide', count: 87 },
+    // up to 10
+  ],
+  userGrowth: {
+    new: [120, 190, 170, 220, 260, 300, 350],
+    active: [80, 120, 140, 160, 190, 220, 250]
+  }
+};
+
+
 
   // Determine visible feedbacks based on showAll
   const visibleFeedbacks = showAll
@@ -505,178 +534,198 @@ const Dashboard = () => {
             ))}
           </div>
 
-          <div className="card border-0 shadow-sm">
-            <div className="card-header bg-white border-bottom">
-              <div className="d-flex justify-content-between align-items-center">
-                <h5 className="card-title mb-0">System Analytics</h5>
-                <div className="btn-group">
-                  <button className="btn btn-sm btn-outline-secondary">
-                    <Download size={16} className="me-1" /> Export Report
-                  </button>
-                </div>
+
+{/* system analytics  */}
+        <div className="card border-0 shadow-sm">
+  <div className="card-header bg-white border-bottom">
+    <div className="d-flex justify-content-between align-items-center">
+      <h5 className="card-title mb-0">System Usage Analytics</h5>
+      <div className="btn-group">
+        <button className="btn btn-sm btn-outline-secondary">
+          <Download size={16} className="me-1" /> Export Report
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div className="card-body">
+    <div className="row">
+      {/* DAU/WAU/MAU + Session Info */}
+      <div className="col-md-6">
+        <div className="card mb-4">
+          <div className="card-header d-flex justify-content-between align-items-center">
+            <h6 className="mb-0">User Activity Summary</h6>
+            <span className="badge bg-info">Last 30 Days</span>
+          </div>
+          <div className="card-body">
+            <div className="row text-center">
+              <div className="col-4">
+                <h3>{data.dau}</h3>
+                <small className="text-muted">Daily Active Users</small>
+              </div>
+              <div className="col-4">
+                <h3>{data.wau}</h3>
+                <small className="text-muted">Weekly Active Users</small>
+              </div>
+              <div className="col-4">
+                <h3>{data.mau}</h3>
+                <small className="text-muted">Monthly Active Users</small>
               </div>
             </div>
-            <div className="card-body">
-              <div className="row">
-                {/* User Metrics */}
-                <div className="col-md-6">
-                  <div className="card mb-4">
-                    <div className="card-header d-flex justify-content-between align-items-center">
-                      <h6 className="mb-0">User Metrics</h6>
-                      <span className="badge bg-info">Last 30 Days</span>
-                    </div>
-                    <div className="card-body">
-                      <div className="row text-center">
-                        <div className="col-4">
-                          <h3>{data.dau.toLocaleString()}</h3>
-                          <small className="text-muted">Daily Active Users</small>
-                        </div>
-                        <div className="col-4">
-                          <h3>{data.wau.toLocaleString()}</h3>
-                          <small className="text-muted">Weekly Active Users</small>
-                        </div>
-                        <div className="col-4">
-                          <h3>{data.mau.toLocaleString()}</h3>
-                          <small className="text-muted">Monthly Active Users</small>
-                        </div>
-                      </div>
-                      <hr />
-                      <div className="row text-center">
-                        <div className="col-6">
-                          <h3>{data.activeChats}</h3>
-                          <small className="text-muted">Active Chats</small>
-                        </div>
-                        <div className="col-6">
-                          <h3>{data.avgSessionDuration}m</h3>
-                          <small className="text-muted">Avg Session Duration</small>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* User Growth Chart (Placeholder) */}
-                  <div className="card mb-4">
-                    <div className="card-header d-flex justify-content-between align-items-center">
-                      <h6 className="mb-0">User Growth Trend</h6>
-                      <div className="btn-group">
-                        <button className="btn btn-sm btn-outline-secondary">Last 30 Days</button>
-                        <button className="btn btn-sm btn-outline-secondary">Last 90 Days</button>
-                      </div>
-                    </div>
-                    <div className="card-body">
-                      <div style={{ height: '300px' }}>
-                        <Line
-                          data={{
-                            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
-                            datasets: [
-                              {
-                                label: 'New Users',
-                                data: [120, 190, 170, 220, 260, 300, 350],
-                                borderColor: 'rgb(75, 192, 192)',
-                                backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                                tension: 0.3,
-                                fill: true
-                              },
-                              {
-                                label: 'Active Users',
-                                data: [80, 120, 140, 160, 190, 220, 250],
-                                borderColor: 'rgb(54, 162, 235)',
-                                backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                                tension: 0.3,
-                                fill: true
-                              }
-                            ]
-                          }}
-                          options={{
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                              legend: {
-                                position: 'top',
-                              },
-                              tooltip: {
-                                mode: 'index',
-                                intersect: false,
-                              }
-                            },
-                            scales: {
-                              y: {
-                                beginAtZero: true,
-                                grid: {
-                                  drawBorder: false
-                                },
-                                ticks: {
-                                  callback: function (value) {
-                                    return value.toLocaleString();
-                                  }
-                                }
-                              },
-                              x: {
-                                grid: {
-                                  display: false
-                                }
-                              }
-                            }
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Top Queries */}
-                <div className="col-md-6">
-                  <div className="card mb-4">
-                    <div className="card-header d-flex justify-content-between align-items-center">
-                      <h6 className="mb-0">Top Queries</h6>
-                      <span className="badge bg-primary">Last 7 Days</span>
-                    </div>
-                    <div className="card-body">
-                      <ul className="list-group">
-                        {data.topQueries.map((query, index) => (
-                          <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
-                            <div className="text-truncate" style={{ maxWidth: '70%' }} title={query.text}>
-                              {query.text}
-                            </div>
-                            <span className="badge bg-primary rounded-pill">{query.count}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-
-                  {/* Feedback Distribution (Placeholder) */}
-                  <div className="card">
-                    <div className="card-header">
-                      <h6 className="mb-0">Feedback Distribution</h6>
-                    </div>
-                    <div className="card-body">
-                      <div className="row text-center">
-                        <div className="col-4">
-                          <div className="display-4 text-success">{data.feedbackDistribution.positive}%</div>
-                          <small className="text-muted">Positive</small>
-                        </div>
-                        <div className="col-4">
-                          <div className="display-4 text-danger">{data.feedbackDistribution.negative}%</div>
-                          <small className="text-muted">Negative</small>
-                        </div>
-                        <div className="col-4">
-                          <div className="display-4 text-secondary">{data.feedbackDistribution.neutral}%</div>
-                          <small className="text-muted">Neutral</small>
-                        </div>
-                      </div>
-                      <div className="chart-placeholder mt-3" style={{ height: '100px', backgroundColor: '#f8f9fa', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <div className="text-center text-muted">
-                          <PieChart size={24} className="mb-1" />
-                          <small>Feedback distribution chart</small>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+            <hr />
+            <div className="row text-center">
+              <div className="col-6">
+                <h3>{data.totalSessions}</h3>
+                <small className="text-muted">Total Sessions</small>
+              </div>
+              <div className="col-6">
+                <h3>{data.avgSessionDuration} min</h3>
+                <small className="text-muted">Avg. Session Duration</small>
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Platform Usage */}
+        <div className="card mb-4">
+          <div className="card-header d-flex justify-content-between align-items-center">
+            <h6 className="mb-0">Platform Usage Breakdown</h6>
+          </div>
+          <div className="card-body">
+            <div className="d-flex justify-content-around text-center">
+              <div>
+                <i className="bi bi-globe2 fs-4 text-primary"></i>
+                <p className="mb-0 mt-1">{data.platformUsage.web} Users<br /><small className="text-muted">Web</small></p>
+              </div>
+              <div>
+                <i className="bi bi-phone fs-4 text-success"></i>
+                <p className="mb-0 mt-1">{data.platformUsage.ios} Users<br /><small className="text-muted">iOS</small></p>
+              </div>
+              <div>
+                <i className="bi bi-android2 fs-4 text-warning"></i>
+                <p className="mb-0 mt-1">{data.platformUsage.android} Users<br /><small className="text-muted">Android</small></p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Conversion Funnel */}
+        <div className="card mb-4">
+          <div className="card-header">
+            <h6 className="mb-0">Conversion Funnel</h6>
+          </div>
+          <div className="card-body">
+            <ul className="list-group">
+              <li className="list-group-item d-flex justify-content-between">
+                <span>Free Users</span>
+                <span>{data.conversion.free}</span>
+              </li>
+              <li className="list-group-item d-flex justify-content-between">
+                <span>Trial Users</span>
+                <span>{data.conversion.trial}</span>
+              </li>
+              <li className="list-group-item d-flex justify-content-between">
+                <span>Paid Users</span>
+                <span>{data.conversion.paid}</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      {/* Right Side Charts */}
+      <div className="col-md-6">
+        {/* Usage Heatmap Placeholder */}
+        <div className="card mb-4">
+          <div className="card-header d-flex justify-content-between align-items-center">
+            <h6 className="mb-0">Usage Heatmap</h6>
+            <span className="badge bg-secondary">By Day/Hour</span>
+          </div>
+          <div className="card-body">
+            <div className="chart-placeholder text-center text-muted" style={{ height: '200px', backgroundColor: '#f8f9fa', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <small>Heatmap visualization coming here</small>
+            </div>
+          </div>
+        </div>
+
+        {/* Top Questions */}
+        <div className="card mb-4">
+          <div className="card-header d-flex justify-content-between align-items-center">
+            <h6 className="mb-0">Top 10 Most Asked Topics</h6>
+            <span className="badge bg-primary">Global</span>
+          </div>
+          <div className="card-body">
+            <ul className="list-group">
+              {data.topTopics.map((topic, index) => (
+                <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
+                  <div className="text-truncate" style={{ maxWidth: '70%' }} title={topic.text}>
+                    {topic.text}
+                  </div>
+                  <span className="badge bg-primary rounded-pill">{topic.count}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        {/* User Growth Chart */}
+        <div className="card">
+          <div className="card-header d-flex justify-content-between align-items-center">
+            <h6 className="mb-0">User Growth (Monthly)</h6>
+          </div>
+          <div className="card-body">
+            <div style={{ height: '250px' }}>
+              {/* Chart.js Line chart component (same as before) */}
+              <Line
+                data={{
+                  labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+                  datasets: [
+                    {
+                      label: 'New Users',
+                      data: data.userGrowth.new,
+                      borderColor: 'rgb(75, 192, 192)',
+                      backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                      tension: 0.3,
+                      fill: true
+                    },
+                    {
+                      label: 'Active Users',
+                      data: data.userGrowth.active,
+                      borderColor: 'rgb(54, 162, 235)',
+                      backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                      tension: 0.3,
+                      fill: true
+                    }
+                  ]
+                }}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: { position: 'top' },
+                    tooltip: { mode: 'index', intersect: false }
+                  },
+                  scales: {
+                    y: {
+                      beginAtZero: true,
+                      ticks: {
+                        callback: value => value.toLocaleString()
+                      }
+                    },
+                    x: {
+                      grid: { display: false }
+                    }
+                  }
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 
           {/* Recent Feedbacks */}
           <div className="row">
