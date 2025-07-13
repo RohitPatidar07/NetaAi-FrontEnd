@@ -45,15 +45,15 @@ const Dashboard = () => {
 
 
   // Register Chart.js components
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-);
+  ChartJS.register(
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    Title,
+    Tooltip,
+    Legend
+  );
 
   // Demo data for visualization
   const demoAnalyticsData = {
@@ -222,13 +222,12 @@ ChartJS.register(
 
   const renderUserTable = () => (
     <div className="card border-0 shadow-sm">
-
       <div className='mb-4'>
-          <button className='btn btn-outline-secondary'
-           onClick={() => setActiveTab('dashboard')}
-           >
-            Back To Dashboard
-          </button>
+        <button className='btn btn-outline-secondary'
+          onClick={() => setActiveTab('dashboard')}
+        >
+          Back To Dashboard
+        </button>
       </div>
 
       <div className="card-header bg-white border-bottom">
@@ -254,7 +253,7 @@ ChartJS.register(
             </button>
             <button
               className="btn btn-sm btn-outline-secondary"
-              onClick={() => exportToPDF(userList, 'users', ['ID', 'Name', 'Email', 'Status', 'Tags', 'Device', 'Sessions', 'Last Active'])}
+              onClick={() => exportToPDF(userList, 'users', ['ID', 'Name', 'Email', 'Tier', 'Status', 'Tags', 'Device', 'Sessions', 'Last Active'])}
             >
               <FileText size={16} className="me-1" /> Export PDF
             </button>
@@ -269,6 +268,7 @@ ChartJS.register(
                 <th>ID</th>
                 <th>Name</th>
                 <th>Email</th>
+                <th>Tier</th>
                 <th>Status</th>
                 <th>Tags</th>
                 <th>Device</th>
@@ -284,6 +284,15 @@ ChartJS.register(
                   <td>{user.name}</td>
                   <td>{user.email}</td>
                   <td>
+                    <span className={`badge ${user.tier === 'Platinum' ? 'bg-primary' :
+                        user.tier === 'Gold' ? 'bg-warning text-dark' :
+                          user.tier === 'Silver' ? 'bg-secondary' :
+                            'bg-light text-dark' // Default for Free tier
+                      }`}>
+                      {user.tier || 'Free'}
+                    </span>
+                  </td>
+                  <td>
                     <span className={`badge ${user.active ? 'bg-success' : 'bg-secondary'}`}>
                       {user.active ? 'Active' : 'Inactive'}
                     </span>
@@ -291,8 +300,8 @@ ChartJS.register(
                   <td>
                     {user.tags?.map((tag, i) => (
                       <span key={i} className={`badge ${tag === 'VIP' ? 'bg-warning text-dark' :
-                        tag === 'Beta Tester' ? 'bg-info' :
-                          tag === 'Abuser' ? 'bg-danger' : 'bg-secondary'
+                          tag === 'Beta Tester' ? 'bg-info' :
+                            tag === 'Abuser' ? 'bg-danger' : 'bg-secondary'
                         } me-1`}>
                         {tag}
                       </span>
@@ -438,11 +447,6 @@ ChartJS.register(
   return (
     <div className="container-fluid">
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <div>
-          <h1 className="h2 mb-1">Dashboard Overview</h1>
-          <p className="text-muted mb-0">Welcome back! Here's what's happening with your chatbot system.</p>
-        </div>
-
         {/* <div>
           <button 
             className="btn btn-outline-secondary me-2"
@@ -464,6 +468,12 @@ ChartJS.register(
         <>
           {/* Stats Cards */}
           <div className="row g-4 mb-4">
+
+             <div>
+          <h1 className="h2 mb-1">Dashboard Overview</h1>
+          <p className="text-muted mb-0">Welcome back! Here's what's happening with your chatbot system.</p>
+        </div>
+
             {stats.map((stat, index) => (
               <div key={index} className="col-xl-3 col-md-6">
                 <div
@@ -545,73 +555,73 @@ ChartJS.register(
                   </div>
 
                   {/* User Growth Chart (Placeholder) */}
-                 <div className="card mb-4">
-  <div className="card-header d-flex justify-content-between align-items-center">
-    <h6 className="mb-0">User Growth Trend</h6>
-    <div className="btn-group">
-      <button className="btn btn-sm btn-outline-secondary">Last 30 Days</button>
-      <button className="btn btn-sm btn-outline-secondary">Last 90 Days</button>
-    </div>
-  </div>
-  <div className="card-body">
-    <div style={{ height: '300px' }}>
-      <Line
-        data={{
-          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
-          datasets: [
-            {
-              label: 'New Users',
-              data: [120, 190, 170, 220, 260, 300, 350],
-              borderColor: 'rgb(75, 192, 192)',
-              backgroundColor: 'rgba(75, 192, 192, 0.2)',
-              tension: 0.3,
-              fill: true
-            },
-            {
-              label: 'Active Users',
-              data: [80, 120, 140, 160, 190, 220, 250],
-              borderColor: 'rgb(54, 162, 235)',
-              backgroundColor: 'rgba(54, 162, 235, 0.2)',
-              tension: 0.3,
-              fill: true
-            }
-          ]
-        }}
-        options={{
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: 'top',
-            },
-            tooltip: {
-              mode: 'index',
-              intersect: false,
-            }
-          },
-          scales: {
-            y: {
-              beginAtZero: true,
-              grid: {
-                drawBorder: false
-              },
-              ticks: {
-                callback: function(value) {
-                  return value.toLocaleString();
-                }
-              }
-            },
-            x: {
-              grid: {
-                display: false
-              }
-            }
-          }
-        }}
-      />
-    </div>
-  </div>
-</div>
+                  <div className="card mb-4">
+                    <div className="card-header d-flex justify-content-between align-items-center">
+                      <h6 className="mb-0">User Growth Trend</h6>
+                      <div className="btn-group">
+                        <button className="btn btn-sm btn-outline-secondary">Last 30 Days</button>
+                        <button className="btn btn-sm btn-outline-secondary">Last 90 Days</button>
+                      </div>
+                    </div>
+                    <div className="card-body">
+                      <div style={{ height: '300px' }}>
+                        <Line
+                          data={{
+                            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+                            datasets: [
+                              {
+                                label: 'New Users',
+                                data: [120, 190, 170, 220, 260, 300, 350],
+                                borderColor: 'rgb(75, 192, 192)',
+                                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                                tension: 0.3,
+                                fill: true
+                              },
+                              {
+                                label: 'Active Users',
+                                data: [80, 120, 140, 160, 190, 220, 250],
+                                borderColor: 'rgb(54, 162, 235)',
+                                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                                tension: 0.3,
+                                fill: true
+                              }
+                            ]
+                          }}
+                          options={{
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                              legend: {
+                                position: 'top',
+                              },
+                              tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                              }
+                            },
+                            scales: {
+                              y: {
+                                beginAtZero: true,
+                                grid: {
+                                  drawBorder: false
+                                },
+                                ticks: {
+                                  callback: function (value) {
+                                    return value.toLocaleString();
+                                  }
+                                }
+                              },
+                              x: {
+                                grid: {
+                                  display: false
+                                }
+                              }
+                            }
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Top Queries */}
