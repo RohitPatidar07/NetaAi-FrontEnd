@@ -34,17 +34,28 @@ const Login = () => {
 
       const data = response.data;
 
-      if (data.status === "true") {
 
+
+
+
+      if (data.status === "true") {
+        localStorage.setItem("admin", data?.data?.is_admin)
         localStorage.setItem("token", data?.data?.token);
         localStorage.setItem("user_id", data?.data?.id)
+        localStorage.setItem("email", data?.data?.email);
         localStorage.setItem("user_name", data?.data?.name)
         localStorage.setItem("login_count", data?.data?.login_count)
         localStorage.setItem("SHOW_POPUP", "true");
 
         alert("Login successful!");
 
+        if(data?.data?.is_admin === 1){
+          navigate("/dashboard")
+        }
+        else{
+
         navigate("/chatbot");
+        }
 
       } else {
         setError(data.message || "Login failed.");

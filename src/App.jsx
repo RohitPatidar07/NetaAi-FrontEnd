@@ -89,7 +89,7 @@ function App() {
 
           </Route>
 
-          {/* <Route element={<ProtectedRoute allowedPermissions={[13]} />}> */}
+          <Route element={<ProtectedRoute allowedPermissions={[13]} />}>
             <Route path="/dashboard" element={<DashboardLayout />}>
               <Route index element={<Dashboard />} />
               <Route path="allusers" element={<AllUsers />} />
@@ -97,14 +97,14 @@ function App() {
               <Route path="updateprofile" element={<UpdateProfile />} />
               <Route path="plans" element={<Plans />} />
             </Route>
-          {/* </Route> */}
+          </Route>
 
           {/* Unauthorized page */}
           <Route path="/unauthorized" element={<Unauthorized />} />
 
           <Route path="/demo" element={<ClaudeInterface />} />
           {/* handle all  */}
-          <Route path="*" element={ <div>No Page exists</div>} />
+          {/* <Route path="*" element={ <div>No Page exists</div>} /> */}
         </Routes>
       </Router>
 

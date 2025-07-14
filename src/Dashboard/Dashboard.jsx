@@ -38,6 +38,7 @@ const Dashboard = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [adminNote, setAdminNote] = useState('');
   const [flagReason, setFlagReason] = useState('');
+  const [dashboardData , setdashboardData] = useState(null);
   const navigate = useNavigate();
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -83,16 +84,19 @@ const Dashboard = () => {
   // Use demo data if real data isn't available
   // const data = analyticsData || demoAnalyticsData;
 
+
+
   const data = {
-  dau: 320,
-  wau: 980,
-  mau: 2100,
+  dau: dashboardData?.data?.active_users?.daily,
+  wau: dashboardData?.data?.active_users?.weekly,
+  mau: dashboardData?.data?.active_users?.monthly,
   totalSessions: 5500,
   avgSessionDuration: 8.4,
   platformUsage: {
-    web: 1500,
-    ios: 900,
-    android: 700
+    web: dashboardData?.data?.platform_usage?.web,
+    ios: dashboardData?.data?.platform_usage?.ios
+,
+    android: dashboardData?.data?.platform_usage?.android
   },
   conversion: {
     free: 1200,
@@ -125,6 +129,8 @@ const Dashboard = () => {
   // Calculate start index for displaying entries
   const startIndex = (currentPage - 1) * itemsPerPage;
 
+
+
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -153,8 +159,11 @@ const Dashboard = () => {
 
     const fetchAnalytics = async () => {
       try {
-        const response = await axios.get(`${BASE_URL}/analytics`);
-        setAnalyticsData(response.data);
+        const response = await axios.get(`${BASE_URL}/admin/analytics`);
+        console.log("dashAPI !!", response.data)
+        setdashboardData(response.data);
+
+        // setAnalyticsData(response.data);
       } catch (error) {
         console.error('Error fetching analytics:', error);
       }
@@ -164,6 +173,9 @@ const Dashboard = () => {
     fetchFeedBacks();
     fetchAnalytics();
   }, []);
+
+  console.log("Dashboard !!!", dashboardData);
+
 
   const stats = [
     { title: 'Total Users', value: users, change: '+12%', icon: Users, color: 'primary' },
@@ -572,8 +584,8 @@ const Dashboard = () => {
                 <small className="text-muted">Monthly Active Users</small>
               </div>
             </div>
-            <hr />
-            <div className="row text-center">
+            {/* <hr /> */}
+            {/* <div className="row text-center">
               <div className="col-6">
                 <h3>{data.totalSessions}</h3>
                 <small className="text-muted">Total Sessions</small>
@@ -582,7 +594,7 @@ const Dashboard = () => {
                 <h3>{data.avgSessionDuration} min</h3>
                 <small className="text-muted">Avg. Session Duration</small>
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
 

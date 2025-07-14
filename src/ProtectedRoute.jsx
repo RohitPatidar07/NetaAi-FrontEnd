@@ -10,7 +10,7 @@ const ProtectedRoute = ({ allowedPermissions }) => {
     return <Navigate to="/login" />;
   }
 
-  if (!allowedPermissions.includes(userId)) {
+  if (!allowedPermissions.includes(userId )) {
     // Logged in but not authorized
     return <Navigate to="/unauthorized" />;
   }
