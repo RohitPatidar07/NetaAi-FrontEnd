@@ -12,7 +12,14 @@ import {
     UserCheck,
     UserX,
     Mail,
-    Link
+    Link,
+    Phone,
+    Building,
+    MapPin,
+    Shield,
+    Tag,
+    Save,
+    X
 } from 'lucide-react';
 import axios from 'axios';
 import BASE_URL from '../../config';
@@ -30,6 +37,10 @@ const AllUsers = () => {
     const [users, setUsers] = useState([]);
     const [selectedUserId, setSelectedUserId] = useState(null);
     const [showSignupModal, setShowSignupModal] = useState(false);
+    const [editingUserId, setEditingUserId] = useState(null);
+    const [editingField, setEditingField] = useState(null);
+    const [tempValue, setTempValue] = useState('');
+    const [newTag, setNewTag] = useState('');
 
     const navigate = useNavigate();
 
@@ -64,14 +75,42 @@ const AllUsers = () => {
 
     const getStatusIcon = (status) => {
         switch (status) {
-            // case 'active':
-            //     return <UserCheck size={16} className="text-success" />;
-            // case 'inactive':
-            //     return <UserX size={16} className="text-warning" />;
-            // case 'banned':
-            //     return <UserX size={16} className="text-danger" />;
+            case 'active':
+                return <UserCheck size={16} className="text-success" />;
+            case 'inactive':
+                return <UserX size={16} className="text-warning" />;
+            case 'banned':
+                return <UserX size={16} className="text-danger" />;
             default:
                 return <Users size={16} className="text-muted" />;
+        }
+    };
+
+    const getStatusBadge = (status) => {
+        switch (status) {
+            case 'active':
+                return <span className="badge bg-success-subtle text-success">Active</span>;
+            case 'inactive':
+                return <span className="badge bg-warning-subtle text-warning">Inactive</span>;
+            case 'banned':
+                return <span className="badge bg-danger-subtle text-danger">Banned</span>;
+            default:
+                return <span className="badge bg-secondary-subtle text-secondary">Unknown</span>;
+        }
+    };
+
+    const getTierBadge = (tier) => {
+        switch (tier) {
+            case 'Free Tier':
+                return <span className="badge bg-light text-dark">Free</span>;
+            case 'Gold':
+                return <span className="badge bg-warning text-dark">Gold</span>;
+            case 'Silver':
+                return <span className="badge bg-secondary">Silver</span>;
+            case 'Platinum':
+                return <span className="badge bg-primary">Platinum</span>;
+            default:
+                return <span className="badge bg-light text-dark">Free</span>;
         }
     };
 
@@ -113,14 +152,165 @@ const AllUsers = () => {
         }
     };
 
+    const handleStatusChange = async (userId, newStatus) => {
+        try {
+            const response = await axios.put(`${BASE_URL}/user/updateStatus/${userId}`, {
+                status: newStatus
+            }, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+
+            if (response.status === 200) {
+                // Update the local state
+                setUsers(users.map(user => 
+                    user.id === userId ? { ...user, status: newStatus } : user
+                ));
+                alert('Status updated successfully.');
+            }
+        } catch (error) {
+            console.error('Error updating status:', error);
+            alert('Failed to update status.');
+        }
+    };
+
+    const handleAddTag = async (userId) => {
+        if (!newTag.trim()) return;
+
+        try {
+            const user = users.find(u => u.id === userId);
+            const currentTags = user.tags ? user.tags.split(',') : [];
+            const updatedTags = [...currentTags, newTag.trim()].join(',');
+
+            const response = await axios.put(`${BASE_URL}/user/updateTags/${userId}`, {
+                tags: updatedTags
+            }, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+
+            if (response.status === 200) {
+                setUsers(users.map(u => 
+                    u.id === userId ? { ...u, tags: updatedTags } : u
+                ));
+                setNewTag('');
+                setEditingUserId(null);
+                setEditingField(null);
+                alert('Tag added successfully.');
+            }
+        } catch (error) {
+            console.error('Error adding tag:', error);
+            alert('Failed to add tag.');
+        }
+    };
+
+    const handleRemoveTag = async (userId, tagToRemove) => {
+        try {
+            const user = users.find(u => u.id === userId);
+            const currentTags = user.tags ? user.tags.split(',') : [];
+            const updatedTags = currentTags.filter(tag => tag.trim() !== tagToRemove).join(',');
+
+            const response = await axios.put(`${BASE_URL}/user/updateTags/${userId}`, {
+                tags: updatedTags
+            }, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+
+            if (response.status === 200) {
+                setUsers(users.map(u => 
+                    u.id === userId ? { ...u, tags: updatedTags } : u
+                ));
+                alert('Tag removed successfully.');
+            }
+        } catch (error) {
+            console.error('Error removing tag:', error);
+            alert('Failed to remove tag.');
+        }
+    };
+
+    const renderTags = (user) => {
+        const tags = user.tags ? user.tags.split(',').filter(tag => tag.trim()) : [];
+        
+        return (
+            <div className="d-flex flex-wrap gap-1 align-items-center">
+                {tags.map((tag, index) => (
+                    <span key={index} className="badge bg-info-subtle text-info d-flex align-items-center">
+                        {tag.trim()}
+                        <button 
+                            className="btn btn-sm p-0 ms-1"
+                            style={{ background: 'none', border: 'none', color: 'inherit' }}
+                            onClick={() => handleRemoveTag(user.id, tag.trim())}
+                        >
+                            <X size={12} />
+                        </button>
+                    </span>
+                ))}
+                {editingUserId === user.id && editingField === 'tags' ? (
+                    <div className="d-flex align-items-center gap-1">
+                        <input
+                            type="text"
+                            className="form-control form-control-sm"
+                            style={{ width: '80px' }}
+                            value={newTag}
+                            onChange={(e) => setNewTag(e.target.value)}
+                            placeholder="Add tag"
+                            onKeyPress={(e) => {
+                                if (e.key === 'Enter') {
+                                    handleAddTag(user.id);
+                                }
+                            }}
+                        />
+                        <button 
+                            className="btn btn-sm btn-success"
+                            onClick={() => handleAddTag(user.id)}
+                        >
+                            <Save size={12} />
+                        </button>
+                        <button 
+                            className="btn btn-sm btn-secondary"
+                            onClick={() => {
+                                setEditingUserId(null);
+                                setEditingField(null);
+                                setNewTag('');
+                            }}
+                        >
+                            <X size={12} />
+                        </button>
+                    </div>
+                ) : (
+                    <button 
+                        className="btn btn-sm btn-outline-secondary"
+                        onClick={() => {
+                            setEditingUserId(user.id);
+                            setEditingField('tags');
+                        }}
+                    >
+                        <Plus size={12} />
+                    </button>
+                )}
+            </div>
+        );
+    };
+
     const exportToExcel = () => {
         const exportData = filteredUsers.map(user => ({
             Name: user.full_name,
             Email: user.email,
+            Phone: user.phone_number || 'N/A',
+            Organization: user.organization_name || 'N/A',
+            Address: user.address || 'N/A',
+            LicenseNumber: user.license_number || 'N/A',
             Status: user.status,
+            Tier: user.tier,
+            Tags: user.tags || 'N/A',
+            IsAdmin: user.is_admin === 1 ? 'Yes' : 'No',
             Joined: new Date(user.created_at).toLocaleDateString(),
-            LastActive: new Date(user.created_at).toLocaleDateString(),
-            ChatCount: user.chatCount
+            LastActive: user.last_active ? new Date(user.last_active).toLocaleDateString() : 'Never',
+            LoginCount: user.login_count || 0
         }));
 
         const worksheet = XLSX.utils.json_to_sheet(exportData);
@@ -273,115 +463,166 @@ const AllUsers = () => {
                             <thead className="table-light">
                                 <tr>
                                     <th className="border-0 fw-semibold">User</th>
-                                    <th className="border-0 fw-semibold">Current Plan</th>
+                                    <th className="border-0 fw-semibold">Contact</th>
+                                    <th className="border-0 fw-semibold">Organization</th>
+                                    <th className="border-0 fw-semibold">Status</th>
+                                    <th className="border-0 fw-semibold">Tier</th>
+                                    <th className="border-0 fw-semibold">Location</th>
                                     <th className="border-0 fw-semibold">Joined</th>
-                                    <th className="border-0 fw-semibold">Last Active</th>
-                                    <th className="border-0 fw-semibold">Chat Count</th>
                                     <th className="border-0 fw-semibold">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {currentUsers.map((user) => (
-                                    <tr key={user.id} >
+                                    <tr key={user.id}>
                                         <td onClick={(e) => {
                                             e.preventDefault();
                                             navigate('/dashboard/updateprofile', { state: { userData: user } });
                                         }}>
                                             <div className="d-flex align-items-center">
-                                                <div className="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3"
-                                                    style={{ width: '40px', height: '40px' }}>
-                                                    <span className="text-white fw-bold">
-                                                        {user.full_name.split(' ').map(n => n[0]).join('')}
-                                                    </span>
-                                                </div>
+                                                {user.image ? (
+                                                    <img 
+                                                        src={user.image} 
+                                                        alt={user.full_name}
+                                                        className="rounded-circle me-3"
+                                                        style={{ width: '40px', height: '40px', objectFit: 'cover' }}
+                                                    />
+                                                ) : (
+                                                    <div className="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3"
+                                                        style={{ width: '40px', height: '40px' }}>
+                                                        <span className="text-white fw-bold">
+                                                            {user.full_name.split(' ').map(n => n[0]).join('')}
+                                                        </span>
+                                                    </div>
+                                                )}
                                                 <div>
-                                                    <div className="fw-medium">{user.full_name}</div>
+                                                    <div className="fw-medium d-flex align-items-center">
+                                                        {user.full_name}
+                                                        {user.is_admin === 1 && (
+                                                            <Shield size={14} className="text-warning ms-2" title="Admin" />
+                                                        )}
+                                                    </div>
                                                     <small className="text-muted">{user.email}</small>
                                                 </div>
                                             </div>
                                         </td>
                                         <td>
+                                            <div>
+                                                <div className="d-flex align-items-center mb-1">
+                                                    <Phone size={14} className="text-muted me-1" />
+                                                    <small>{user.phone_number || 'N/A'}</small>
+                                                </div>
+                                                <div className="d-flex align-items-center">
+                                                    <Mail size={14} className="text-muted me-1" />
+                                                    <small className="text-truncate" style={{ maxWidth: '120px' }}>
+                                                        {user.email}
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div>
+                                                <div className="d-flex align-items-center mb-1">
+                                                    <Building size={14} className="text-muted me-1" />
+                                                    <small className="text-truncate" style={{ maxWidth: '100px' }}>
+                                                        {user.organization_name || 'N/A'}
+                                                    </small>
+                                                </div>
+                                                {user.license_number && (
+                                                    <div>
+                                                        <small className="text-muted">Lic: {user.license_number}</small>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div className="dropdown">
+                                                <button 
+                                                    className="btn btn-sm p-0 border-0 bg-transparent"
+                                                    type="button" 
+                                                    data-bs-toggle="dropdown"
+                                                >
+                                                    {getStatusBadge(user.status)}
+                                                </button>
+                                                <ul className="dropdown-menu">
+                                                    <li>
+                                                        <button 
+                                                            className="dropdown-item"
+                                                            onClick={() => handleStatusChange(user.id, 'active')}
+                                                        >
+                                                            <UserCheck size={14} className="me-2 text-success" />
+                                                            Active
+                                                        </button>
+                                                    </li>
+                                                    <li>
+                                                        <button 
+                                                            className="dropdown-item"
+                                                            onClick={() => handleStatusChange(user.id, 'inactive')}
+                                                        >
+                                                            <UserX size={14} className="me-2 text-warning" />
+                                                            Inactive
+                                                        </button>
+                                                    </li>
+                                                    <li>
+                                                        <button 
+                                                            className="dropdown-item"
+                                                            onClick={() => handleStatusChange(user.id, 'banned')}
+                                                        >
+                                                            <UserX size={14} className="me-2 text-danger" />
+                                                            Banned
+                                                        </button>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {getTierBadge(user.tier)}
+                                        </td>
+                                        <td>
                                             <div className="d-flex align-items-center">
-                                                {getStatusIcon(user.status)}
-                                                <span className="ms-2">{user?.plan}</span>
+                                                <MapPin size={14} className="text-muted me-1" />
+                                                <small className="text-truncate" style={{ maxWidth: '80px' }}>
+                                                    {user.address || 'N/A'}
+                                                </small>
                                             </div>
                                         </td>
                                         <td className="text-muted">
-                                            {new Date(user.created_at).toLocaleDateString('en-GB')}
-                                        </td>
-                                        <td className="text-muted">
-                                            {new Date(user.lastActive).toLocaleDateString()}
+                                            <small>{new Date(user.created_at).toLocaleDateString('en-GB')}</small>
                                         </td>
                                         <td>
-                                            <span className="badge bg-info-subtle text-info">{user.chatCount}</span>
-                                        </td>
-                                        <td>
-                                            {/* <div className="dropdown"> */}
                                             <div className="d-flex">
-                                                {/* <button
-                                                    className="btn btn-sm btn-outline-secondary"
-                                                    type="button"
-                                                // data-bs-toggle="dropdown"
-                                                > */}
-                                                {/* <MoreVertical size={16} /> */}
                                                 <a
-                                                    className="dropdown-item"
+                                                    className="btn btn-sm btn-outline-primary me-1"
                                                     href="#"
                                                     onClick={(e) => {
                                                         e.preventDefault();
                                                         navigate('/dashboard/updateprofile', { state: { userData: user } });
                                                     }}
+                                                    title="View/Edit User"
                                                 >
-                                                    <Eye size={16} className="me-2" />
+                                                    <Eye size={16} />
                                                 </a>
                                                 <a
-                                                    className="dropdown-item"
+                                                    className="btn btn-sm btn-outline-secondary me-1"
                                                     href="#"
                                                     onClick={(e) => {
                                                         e.preventDefault();
                                                         navigate('/dashboard/updateprofile', { state: { userData: user } });
                                                     }}
+                                                    title="Edit User"
                                                 >
-                                                    <Edit size={16} className="me-2" />
+                                                    <Edit size={16} />
                                                 </a>
                                                 <a
-                                                    className="dropdown-item text-danger"
+                                                    className="btn btn-sm btn-outline-danger"
                                                     href="#"
                                                     data-bs-toggle="modal"
                                                     data-bs-target="#deleteUserModal"
                                                     onClick={() => setSelectedUserId(user.id)}
+                                                    title="Delete User"
                                                 >
-                                                    <Trash2 size={16} className="me-2" />
+                                                    <Trash2 size={16} />
                                                 </a>
-
-                                                {/* </button> */}
-                                                {/* <ul className="dropdown-menu">
-                                                    <li>
-                                                        <a className="dropdown-item" href="#">
-                                                            <Eye size={16} className="me-2" />
-                                                            View Details
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a className="dropdown-item" href="#">
-                                                            <Mail size={16} className="me-2" />
-                                                            Send Message
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a className="dropdown-item" href="#">
-                                                            <Edit size={16} className="me-2" />
-                                                            Edit User
-                                                        </a>
-                                                    </li>
-                                                    <li><hr className="dropdown-divider" /></li>
-                                                    <li>
-                                                        <a className="dropdown-item text-danger" href="#">
-                                                            <Trash2 size={16} className="me-2" />
-                                                            Delete User
-                                                        </a>
-                                                    </li>
-                                                </ul> */}
                                             </div>
                                         </td>
                                     </tr>
