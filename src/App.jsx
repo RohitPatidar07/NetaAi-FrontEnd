@@ -89,7 +89,7 @@ function App() {
 
           </Route>
 
-          <Route element={<ProtectedRoute allowedPermissions={[13]} />}>
+          <Route element={<ProtectedRoute allowedPermissions={[156]} />}>
             <Route path="/dashboard" element={<DashboardLayout />}>
               <Route index element={<Dashboard />} />
               <Route path="allusers" element={<AllUsers />} />

@@ -48,6 +48,7 @@ const Dashboard = () => {
   const itemsPerPage = 5;
 
  
+  const token = localStorage.getItem('token');
 
 
   // Register Chart.js components
@@ -63,7 +64,13 @@ const Dashboard = () => {
 
    const fetchSelectedUser = async (id) => {
       try {
-        const response = await axios.get(`${BASE_URL}/admin/users/${id}`);
+        const response = await axios.get(`${BASE_URL}/admin/users/${id}`,
+          {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+     
         setUser(response.data)
       } catch (error) {
         console.error('Error fetching user:', error);
@@ -331,7 +338,12 @@ const Dashboard = () => {
 
     const fetchAnalytics = async () => {
       try {
-        const response = await axios.get(`${BASE_URL}/admin/analytics`);
+        const response = await axios.get(`${BASE_URL}/admin/analytics/global`,{
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+          
         console.log("dashAPI !!", response.data)
         setdashboardData(response.data);
 
@@ -351,7 +363,7 @@ const Dashboard = () => {
 
   const stats = [
     { title: 'Total Users', value: users, change: '+12%', icon: Users, color: 'primary' },
-    { title: 'Active Chats', value: '0', change: '+5%', icon: MessageSquare, color: 'success' },
+    { title: 'Active Users', value:  dashboardData?.data?.active_users?.daily, change: '+5%', icon: MessageSquare, color: 'success' },
     { title: 'DAU', value: analyticsData?.dau || '0', change: '+3%', icon: Activity, color: 'info' },
     // { title: 'Avg Session', value: analyticsData?.avgSessionDuration ? `${Math.floor(analyticsData.avgSessionDuration / 60)}m` : '0m', change: '+2%', icon: Clock, color: 'warning' },
   ];

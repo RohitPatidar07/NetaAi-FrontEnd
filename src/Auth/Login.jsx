@@ -32,7 +32,11 @@ const Login = () => {
     try {
       const response = await axios.post(`${BASE_URL}/user/login`, formData);
 
+
+
       const data = response.data;
+
+      console.log("LOgin Detaisl" , data);
 
 
 
