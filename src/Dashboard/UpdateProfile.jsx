@@ -13,7 +13,17 @@ import {
     EyeOff,
     X,
     ShieldCheck,
-    BadgeCheck
+    BadgeCheck,
+    Smartphone,
+    Monitor,
+    Globe,
+    Calendar,
+    Crown,
+    Gift,
+    Activity,
+    UserCheck,
+    UserX,
+    Settings
 } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import BASE_URL from '../../config';
@@ -31,9 +41,16 @@ const UpdateProfile = () => {
         address: '',
         organization_name: '',
         license_number: '',
-        // currentPassword: '',
-        // newPassword: '',
-        // confirmPassword: ''
+        status: '',
+        plan: '',
+        comped_until: ''
+    });
+console.log('User Data:', formData)
+    const [deviceUsage] = useState({
+        web: userData?.device_usage?.includes('web') || false,
+        ios: userData?.device_usage?.includes('ios') || false,
+        android: userData?.device_usage?.includes('android') || false,
+        platform_started: userData?.platform_started || 'web'
     });
 
     // const fetchUserData = async (userData) => {
@@ -68,9 +85,12 @@ const UpdateProfile = () => {
             address: userData.address || '',
             organization_name: userData.organization_name || '',
             license_number: userData.license_number || '',
-        })
+            status: userData.status || 'active',
+            plan: userData.plan || 'Free Tier',
+            comped_until: userData.comped_until || ''
+        });
 
-        // fetchUserData(userData);
+        setProfileImage(userData?.image || null);
     }, [userData]);
 
 
@@ -85,6 +105,80 @@ const UpdateProfile = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitStatus, setSubmitStatus] = useState(null);
     const [profileImage, setProfileImage] = useState(userData?.image || null);
+
+    // Helper functions
+    const getDeviceIcon = (platform) => {
+        switch (platform) {
+            case 'web':
+                return <Globe size={16} className="text-primary" />;
+            case 'ios':
+                return <Smartphone size={16} className="text-success" />;
+            case 'android':
+                return <Monitor size={16} className="text-warning" />;
+            default:
+                return <Globe size={16} className="text-muted" />;
+        }
+    };
+
+    const getTierBadge = (planId) => {
+        if (!plans || !planId) {
+            return <span className="badge bg-light text-dark">Free</span>;
+        }
+        
+        const plan = plans.find(p => p.id === parseInt(planId));
+        const planName = plan?.plan_name || 'Free';
+        
+        switch (planName.toLowerCase()) {
+            case 'free':
+            case 'free tier':
+                return <span className="badge bg-light text-dark">Free</span>;
+            case 'gold':
+                return <span className="badge bg-warning text-dark">Gold</span>;
+            case 'silver':
+                return <span className="badge bg-secondary">Silver</span>;
+            case 'platinum':
+                return <span className="badge bg-primary">Platinum</span>;
+            default:
+                return <span className="badge bg-info text-dark">{planName}</span>;
+        }
+    };
+
+    const getStatusBadge = (status) => {
+        switch (status) {
+            case 'active':
+                return <span className="badge bg-success-subtle text-success">Active</span>;
+            case 'inactive':
+                return <span className="badge bg-warning-subtle text-warning">Inactive</span>;
+            case 'banned':
+                return <span className="badge bg-danger-subtle text-danger">Banned</span>;
+            default:
+                return <span className="badge bg-secondary-subtle text-secondary">Unknown</span>;
+        }
+    };
+
+    const handleCompUser = async (tier, duration) => {
+        try {
+            const compEndDate = new Date();
+            compEndDate.setMonth(compEndDate.getMonth() + duration);
+            
+            const response = await axios.patch(`${BASE_URL}/user/compUser/${userData.id}`, {
+                tier: tier,
+                comped_until: compEndDate.toISOString().split('T')[0]
+            });
+
+            if (response.status === 200) {
+                setFormData(prev => ({
+                    ...prev,
+                    tier: tier,
+                    comped_until: compEndDate.toISOString().split('T')[0]
+                }));
+                setSubmitStatus('success');
+            }
+        } catch (error) {
+            console.error('Error comping user:', error);
+            setSubmitStatus('error');
+        }
+    };
 
     const handleInputChange = (field, value) => {
         setFormData(prev => ({
@@ -131,8 +225,25 @@ const UpdateProfile = () => {
         return Object.keys(errors).length === 0;
     };
 
+   const [plans, setPlans] = useState(null);
+
+   useEffect(() => {
+        const fetchPlans = async () => {
+            try {
+                const response = await axios.get(`${BASE_URL}/plan/subscription-plans`);
+                setPlans(response.data);
+            } catch (error) {
+                console.error('Error fetching plans:', error);
+            }
+        };
+
+        fetchPlans();
+    }, []);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (!validateForm()) return;
 
         setIsSubmitting(true);
         setSubmitStatus(null);
@@ -147,16 +258,22 @@ const UpdateProfile = () => {
         newformData.append("address", formData.address);
         newformData.append("organizationName", formData.organization_name);
         newformData.append("licenseNumber", formData.license_number);
+        newformData.append("status", formData.status);
+        newformData.append("plan", formData.plan); // Send plan ID
+        
+        if (formData.comped_until) {
+            newformData.append("comped_until", formData.comped_until);
+        }
 
         // If there's a profile image, append it
-        if (profileImage) {
-            const blob = await fetch(profileImage).then(r => r.blob());
-            newformData.append("image", blob, "profile.jpg");
+        const fileInput = document.getElementById('profileImageInput');
+        if (fileInput?.files[0]) {
+            newformData.append("image", fileInput.files[0]);
         }
 
         try {
             const response = await axios.patch(
-                `${BASE_URL}/user/editProfile/${userId}`,
+                `${BASE_URL}/admin/users/${userId}`,
                 newformData,
                 {
                     headers: {
@@ -261,7 +378,7 @@ const UpdateProfile = () => {
                                             <div className="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3"
                                                 style={{ width: '120px', height: '120px' }}>
                                                 <span className="text-white fw-bold" style={{ fontSize: 24 }}>
-                                                    {userData.full_name.split(' ').map(n => n[0]).join('')}
+                                                    {userData.full_name?.split(' ').map(n => n[0]).join('') || 'U'}
                                                 </span>
                                             </div>
                                         )}
@@ -295,6 +412,96 @@ const UpdateProfile = () => {
                                             <X size={16} className="me-1" />
                                             Remove Photo
                                         </button>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* User Analytics Card */}
+                            <div className="card border-0 shadow-sm mt-4">
+                                <div className="card-header bg-white border-bottom">
+                                    <h5 className="card-title mb-0">
+                                        <Activity size={20} className="me-2" />
+                                        User Analytics
+                                    </h5>
+                                </div>
+                                <div className="card-body">
+                                    {/* Date Joined */}
+                                    <div className="d-flex align-items-center mb-3">
+                                        <Calendar size={16} className="text-muted me-2" />
+                                        <div>
+                                            <small className="text-muted d-block">Date Joined</small>
+                                            <span className="fw-medium">
+                                                {new Date(userData.created_at).toLocaleDateString('en-US', {
+                                                    year: 'numeric',
+                                                    month: 'long',
+                                                    day: 'numeric'
+                                                })}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Last Active */}
+                                    <div className="d-flex align-items-center mb-3">
+                                        <UserCheck size={16} className="text-muted me-2" />
+                                        <div>
+                                            <small className="text-muted d-block">Last Active</small>
+                                            <span className="fw-medium">
+                                                {userData.last_active 
+                                                    ? new Date(userData.last_active).toLocaleDateString('en-US', {
+                                                        year: 'numeric',
+                                                        month: 'short',
+                                                        day: 'numeric'
+                                                    })
+                                                    : 'Never'
+                                                }
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Device Usage */}
+                                    <div className="mb-3">
+                                        <small className="text-muted d-block mb-2">Device Usage</small>
+                                        <div className="d-flex flex-wrap gap-2">
+                                            {deviceUsage.web && (
+                                                <div className={`badge bg-primary-subtle text-primary d-flex align-items-center ${deviceUsage.platform_started === 'web' ? 'border border-primary' : ''}`}>
+                                                    <Globe size={14} className="me-1" />
+                                                    Web
+                                                    {deviceUsage.platform_started === 'web' && (
+                                                        <span className="ms-1" title="Started here">⭐</span>
+                                                    )}
+                                                </div>
+                                            )}
+                                            {deviceUsage.ios && (
+                                                <div className={`badge bg-success-subtle text-success d-flex align-items-center ${deviceUsage.platform_started === 'ios' ? 'border border-success' : ''}`}>
+                                                    <Smartphone size={14} className="me-1" />
+                                                    iOS
+                                                    {deviceUsage.platform_started === 'ios' && (
+                                                        <span className="ms-1" title="Started here">⭐</span>
+                                                    )}
+                                                </div>
+                                            )}
+                                            {deviceUsage.android && (
+                                                <div className={`badge bg-warning-subtle text-warning d-flex align-items-center ${deviceUsage.platform_started === 'android' ? 'border border-warning' : ''}`}>
+                                                    <Monitor size={14} className="me-1" />
+                                                    Android
+                                                    {deviceUsage.platform_started === 'android' && (
+                                                        <span className="ms-1" title="Started here">⭐</span>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <small className="text-muted">⭐ Platform where user started</small>
+                                    </div>
+
+                                    {/* Login Count */}
+                                    {userData.login_count && (
+                                        <div className="d-flex align-items-center">
+                                            <Settings size={16} className="text-muted me-2" />
+                                            <div>
+                                                <small className="text-muted d-block">Total Logins</small>
+                                                <span className="fw-medium">{userData.login_count}</span>
+                                            </div>
+                                        </div>
                                     )}
                                 </div>
                             </div>
@@ -397,6 +604,109 @@ const UpdateProfile = () => {
                                             />
                                         </div>
 
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Admin Controls */}
+                            <div className="card border-0 shadow-sm mt-4">
+                                <div className="card-header bg-white border-bottom">
+                                    <h5 className="card-title mb-0">
+                                        <Settings size={20} className="me-2" />
+                                        Admin Controls
+                                    </h5>
+                                </div>
+                                <div className="card-body">
+                                    <div className="row g-3">
+                                        {/* Current Status */}
+                                        <div className="col-12">
+                                            <label className="form-label fw-semibold">
+                                                <UserCheck size={16} className="me-2" />
+                                                User Status
+                                            </label>
+                                            <div className="d-flex align-items-center mb-2">
+                                                <span className="me-2">Current:</span>
+                                                {getStatusBadge(formData.status)}
+                                            </div>
+                                            <select
+                                                className="form-select"
+                                                value={formData.status}
+                                                onChange={(e) => handleInputChange('status', e.target.value)}
+                                            >
+                                                <option value="active">Active</option>
+                                                <option value="inactive">Inactive</option>
+                                                <option value="banned">Banned</option>
+                                            </select>
+                                        </div>
+
+                                        {/* Current Tier */}
+                                        <div className="col-12">
+                                            <label className="form-label fw-semibold">
+                                                <Crown size={16} className="me-2" />
+                                                Subscription Tier
+                                            </label>
+                                            <div className="d-flex align-items-center mb-2">
+                                                <span className="me-2">Current:</span>
+                                                {getTierBadge(formData.plan)}
+                                            </div>
+                                            <select
+                                                className="form-select"
+                                                value={formData.plan}
+                                                onChange={(e) => handleInputChange('plan', e.target.value)}
+                                            >
+                                                <option value="" disabled>Select a plan</option>
+                                                {
+                                                    plans && plans.map((plan) => (
+                                                        <option key={plan.name} value={plan.id} defaultValue={formData.plan}>
+                                                            {plan.plan_name}
+                                                        </option>
+                                                    ))
+                                                }
+                                               
+                                            </select>
+                                        </div>
+
+                                        {/* Comp Access */}
+                                        {/* <div className="col-12">
+                                            <label className="form-label fw-semibold">
+                                                <Gift size={16} className="me-2" />
+                                                Complimentary Access
+                                            </label>
+                                            {formData.comped_until && (
+                                                <div className="alert alert-info mb-2">
+                                                    <small>
+                                                        <Gift size={14} className="me-1" />
+                                                        Comped until: {new Date(formData.comped_until).toLocaleDateString()}
+                                                    </small>
+                                                </div>
+                                            )}
+                                            <div className="d-flex gap-2 flex-wrap">
+                                                <button
+                                                    type="button"
+                                                    className="btn btn-outline-warning btn-sm"
+                                                    onClick={() => handleCompUser('Gold', 1)}
+                                                >
+                                                    Comp Gold (1 month)
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    className="btn btn-outline-primary btn-sm"
+                                                    onClick={() => handleCompUser('Platinum', 1)}
+                                                >
+                                                    Comp Platinum (1 month)
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    className="btn btn-outline-success btn-sm"
+                                                    onClick={() => handleCompUser('Platinum', 12)}
+                                                >
+                                                    Comp Platinum (1 year)
+                                                </button>
+                                            </div>
+                                            <small className="text-muted">
+                                                Give free access to premium features
+                                            </small>
+                                        </div> */}
                                     </div>
                                 </div>
                             </div>

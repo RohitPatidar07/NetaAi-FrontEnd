@@ -41,7 +41,7 @@ const Dashboard = () => {
 
   const [adminNote, setAdminNote] = useState('');
   const [flagReason, setFlagReason] = useState('');
-  const [dashboardData , setdashboardData] = useState(null);
+  const [dashboardData, setdashboardData] = useState(null);
   const navigate = useNavigate();
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -106,35 +106,186 @@ const Dashboard = () => {
   // const data = analyticsData || demoAnalyticsData;
 
 
-
   const data = {
-  dau: dashboardData?.data?.active_users?.daily,
-  wau: dashboardData?.data?.active_users?.weekly,
-  mau: dashboardData?.data?.active_users?.monthly,
-  totalSessions: 5500,
-  avgSessionDuration: 8.4,
-  platformUsage: {
-    web: dashboardData?.data?.platform_usage?.web,
-    ios: dashboardData?.data?.platform_usage?.ios
-,
-    android: dashboardData?.data?.platform_usage?.android
-  },
-  conversion: {
-    free: 1200,
-    trial: 300,
-    paid: 600
-  },
-  topTopics: [
-    { text: 'How to reset password?', count: 102 },
-    { text: 'NEC lookup guide', count: 87 },
-    // up to 10
-  ],
-  userGrowth: {
-    new: [120, 190, 170, 220, 260, 300, 350],
-    active: [80, 120, 140, 160, 190, 220, 250]
-  }
-};
+    dau: dashboardData?.data?.active_users?.daily,
+    wau: dashboardData?.data?.active_users?.weekly,
+    mau: dashboardData?.data?.active_users?.monthly,
+    totalSessions: 5500,
+    avgSessionDuration: 8.4,
+    platformUsage: {
+      web: dashboardData?.data?.platform_usage?.web,
+      ios: dashboardData?.data?.platform_usage?.ios,
+      android: dashboardData?.data?.platform_usage?.android
+    },
+    conversion: {
+      free: 1200,
+      trial: 300,
+      paid: 600
+    },
+    conversionFunnel: dashboardData?.data?.conversion_funnel || [],
+    topTopics: dashboardData?.data?.top_topics || [],
+    usageHeatmap: dashboardData?.data?.usage_heatmap || [],
+    userGrowth: {
+      new: [120, 190, 170, 220, 260, 300, 350],
+      active: [80, 120, 140, 160, 190, 220, 250]
+    }
+  };
 
+
+
+  // Heatmap component for usage visualization
+  const renderHeatmap = () => {
+    const heatmapData = data.usageHeatmap;
+    
+    if (!heatmapData || heatmapData.length === 0) {
+      return (
+        <div className="text-center text-muted" style={{ height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <small>No heatmap data available</small>
+        </div>
+      );
+    }
+
+    // Days of the week
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    
+    // Hours from 0 to 23
+    const hours = Array.from({ length: 24 }, (_, i) => i);
+    
+    // Create a map for quick lookup of count by day and hour
+    const dataMap = new Map();
+    heatmapData.forEach(item => {
+      const key = `${item.day}-${item.hour}`;
+      dataMap.set(key, item.count);
+    });
+    
+    // Find max count for color scaling
+    const maxCount = Math.max(...heatmapData.map(item => item.count), 1);
+    
+    // Function to get color intensity based on count
+    const getColorIntensity = (count) => {
+      if (count === 0) return 0;
+      return (count / maxCount);
+    };
+    
+    // Function to get background color
+    const getBackgroundColor = (count) => {
+      const intensity = getColorIntensity(count);
+      if (intensity === 0) return '#f8f9fa';
+      
+      // Use a blue gradient
+      const alpha = Math.max(0.1, intensity);
+      return `rgba(54, 162, 235, ${alpha})`;
+    };
+
+    return (
+      <div style={{ overflowX: 'auto' }}>
+        <div style={{ minWidth: '600px' }}>
+          {/* Header with hours */}
+          <div style={{ display: 'flex', marginBottom: '2px' }}>
+            <div style={{ width: '40px', fontSize: '10px', textAlign: 'center' }}></div>
+            {hours.map(hour => (
+              <div
+                key={hour}
+                style={{
+                  width: '24px',
+                  height: '20px',
+                  fontSize: '10px',
+                  textAlign: 'center',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#6c757d'
+                }}
+              >
+                {hour}
+              </div>
+            ))}
+          </div>
+          
+          {/* Heatmap grid */}
+          {days.map((dayName, dayIndex) => (
+            <div key={dayIndex} style={{ display: 'flex', marginBottom: '2px' }}>
+              {/* Day label */}
+              <div
+                style={{
+                  width: '40px',
+                  height: '20px',
+                  fontSize: '11px',
+                  fontWeight: '500',
+                  textAlign: 'center',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#495057'
+                }}
+              >
+                {dayName}
+              </div>
+              
+              {/* Hour cells */}
+              {hours.map(hour => {
+                const key = `${dayIndex}-${hour}`;
+                const count = dataMap.get(key) || 0;
+                const backgroundColor = getBackgroundColor(count);
+                
+                return (
+                  <div
+                    key={hour}
+                    style={{
+                      width: '24px',
+                      height: '20px',
+                      backgroundColor,
+                      border: '1px solid #dee2e6',
+                      borderRadius: '2px',
+                      margin: '0 1px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '9px',
+                      color: count > maxCount * 0.5 ? 'white' : '#495057',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease'
+                    }}
+                    title={`${dayName} ${hour}:00 - ${count} activities`}
+                    onMouseOver={(e) => {
+                      e.target.style.transform = 'scale(1.1)';
+                      e.target.style.zIndex = '10';
+                      e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)';
+                    }}
+                    onMouseOut={(e) => {
+                      e.target.style.transform = 'scale(1)';
+                      e.target.style.zIndex = 'auto';
+                      e.target.style.boxShadow = 'none';
+                    }}
+                  >
+                    {count > 0 && count < 100 ? count : count >= 100 ? '99+' : ''}
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+          
+          {/* Legend */}
+          <div style={{ marginTop: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '11px', color: '#6c757d' }}>Less</span>
+            {[0, 0.2, 0.4, 0.6, 0.8, 1].map((intensity, i) => (
+              <div
+                key={i}
+                style={{
+                  width: '12px',
+                  height: '12px',
+                  backgroundColor: intensity === 0 ? '#f8f9fa' : `rgba(54, 162, 235, ${Math.max(0.1, intensity)})`,
+                  border: '1px solid #dee2e6',
+                  borderRadius: '2px'
+                }}
+              />
+            ))}
+            <span style={{ fontSize: '11px', color: '#6c757d' }}>More</span>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
 
   // Determine visible feedbacks based on showAll
@@ -202,7 +353,7 @@ const Dashboard = () => {
     { title: 'Total Users', value: users, change: '+12%', icon: Users, color: 'primary' },
     { title: 'Active Chats', value: '0', change: '+5%', icon: MessageSquare, color: 'success' },
     { title: 'DAU', value: analyticsData?.dau || '0', change: '+3%', icon: Activity, color: 'info' },
-    { title: 'Avg Session', value: analyticsData?.avgSessionDuration ? `${Math.floor(analyticsData.avgSessionDuration / 60)}m` : '0m', change: '+2%', icon: Clock, color: 'warning' },
+    // { title: 'Avg Session', value: analyticsData?.avgSessionDuration ? `${Math.floor(analyticsData.avgSessionDuration / 60)}m` : '0m', change: '+2%', icon: Clock, color: 'warning' },
   ];
 
   const getActivityIcon = (type) => {
@@ -347,9 +498,9 @@ const Dashboard = () => {
                   <td>{user.email}</td>
                   <td>
                     <span className={`badge ${user.tier === 'Platinum' ? 'bg-primary' :
-                        user.tier === 'Gold' ? 'bg-warning text-dark' :
-                          user.tier === 'Silver' ? 'bg-secondary' :
-                            'bg-light text-dark' // Default for Free tier
+                      user.tier === 'Gold' ? 'bg-warning text-dark' :
+                        user.tier === 'Silver' ? 'bg-secondary' :
+                          'bg-light text-dark' // Default for Free tier
                       }`}>
                       {user.tier || 'Free'}
                     </span>
@@ -362,8 +513,8 @@ const Dashboard = () => {
                   <td>
                     {user.tags?.map((tag, i) => (
                       <span key={i} className={`badge ${tag === 'VIP' ? 'bg-warning text-dark' :
-                          tag === 'Beta Tester' ? 'bg-info' :
-                            tag === 'Abuser' ? 'bg-danger' : 'bg-secondary'
+                        tag === 'Beta Tester' ? 'bg-info' :
+                          tag === 'Abuser' ? 'bg-danger' : 'bg-secondary'
                         } me-1`}>
                         {tag}
                       </span>
@@ -535,16 +686,17 @@ const Dashboard = () => {
           {/* Stats Cards */}
           <div className="row g-4 mb-4">
 
-             <div>
-          <h1 className="h2 mb-1">Dashboard Overview</h1>
-          <p className="text-muted mb-0">Welcome back! Here's what's happening with your chatbot system.</p>
-        </div>
+            <div>
+              <h1 className="h2 mb-1">Dashboard Overview</h1>
+              <p className="text-muted mb-0">Welcome back! Here's what's happening with your chatbot system.</p>
+            </div>
 
             {stats.map((stat, index) => (
               <div key={index} className="col-xl-3 col-md-6">
                 <div
                   className="card h-100 border-0 shadow-sm"
                   onClick={() => stat.title === 'Total Users' ? setActiveTab('users') : null}
+                  // onClick={useNavigate('/allusers')}
                   style={{
                     cursor: stat.title === 'Total Users' ? 'pointer' : 'default',
                     transition: 'transform 0.2s ease'
@@ -572,45 +724,45 @@ const Dashboard = () => {
           </div>
 
 
-{/* system analytics  */}
-        <div className="card border-0 shadow-sm">
-  <div className="card-header bg-white border-bottom">
-    <div className="d-flex justify-content-between align-items-center">
-      <h5 className="card-title mb-0">System Usage Analytics</h5>
-      <div className="btn-group">
-        <button className="btn btn-sm btn-outline-secondary">
-          <Download size={16} className="me-1" /> Export Report
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <div className="card-body">
-    <div className="row">
-      {/* DAU/WAU/MAU + Session Info */}
-      <div className="col-md-6">
-        <div className="card mb-4">
-          <div className="card-header d-flex justify-content-between align-items-center">
-            <h6 className="mb-0">User Activity Summary</h6>
-            <span className="badge bg-info">Last 30 Days</span>
-          </div>
-          <div className="card-body">
-            <div className="row text-center">
-              <div className="col-4">
-                <h3>{data.dau}</h3>
-                <small className="text-muted">Daily Active Users</small>
-              </div>
-              <div className="col-4">
-                <h3>{data.wau}</h3>
-                <small className="text-muted">Weekly Active Users</small>
-              </div>
-              <div className="col-4">
-                <h3>{data.mau}</h3>
-                <small className="text-muted">Monthly Active Users</small>
+          {/* system analytics  */}
+          <div className="card border-0 shadow-sm">
+            <div className="card-header bg-white border-bottom">
+              <div className="d-flex justify-content-between align-items-center">
+                <h5 className="card-title mb-0">System Usage Analytics</h5>
+                <div className="btn-group">
+                  <button className="btn btn-sm btn-outline-secondary">
+                    <Download size={16} className="me-1" /> Export Report
+                  </button>
+                </div>
               </div>
             </div>
-            {/* <hr /> */}
-            {/* <div className="row text-center">
+
+            <div className="card-body">
+              <div className="row">
+                {/* DAU/WAU/MAU + Session Info */}
+                <div className="col-md-6">
+                  <div className="card mb-4">
+                    <div className="card-header d-flex justify-content-between align-items-center">
+                      <h6 className="mb-0">User Activity Summary</h6>
+                      {/* <span className="badge bg-info">Last 30 Days</span> */}
+                    </div>
+                    <div className="card-body">
+                      <div className="row text-center">
+                        <div className="col-4">
+                          <h3>{data.dau}</h3>
+                          <small className="text-muted">Daily Active Users</small>
+                        </div>
+                        <div className="col-4">
+                          <h3>{data.wau}</h3>
+                          <small className="text-muted">Weekly Active Users</small>
+                        </div>
+                        <div className="col-4">
+                          <h3>{data.mau}</h3>
+                          <small className="text-muted">Monthly Active Users</small>
+                        </div>
+                      </div>
+                      {/* <hr /> */}
+                      {/* <div className="row text-center">
               <div className="col-6">
                 <h3>{data.totalSessions}</h3>
                 <small className="text-muted">Total Sessions</small>
@@ -620,148 +772,157 @@ const Dashboard = () => {
                 <small className="text-muted">Avg. Session Duration</small>
               </div>
             </div> */}
-          </div>
-        </div>
-
-        {/* Platform Usage */}
-        <div className="card mb-4">
-          <div className="card-header d-flex justify-content-between align-items-center">
-            <h6 className="mb-0">Platform Usage Breakdown</h6>
-          </div>
-          <div className="card-body">
-            <div className="d-flex justify-content-around text-center">
-              <div>
-                <i className="bi bi-globe2 fs-4 text-primary"></i>
-                <p className="mb-0 mt-1">{data.platformUsage.web} Users<br /><small className="text-muted">Web</small></p>
-              </div>
-              <div>
-                <i className="bi bi-phone fs-4 text-success"></i>
-                <p className="mb-0 mt-1">{data.platformUsage.ios} Users<br /><small className="text-muted">iOS</small></p>
-              </div>
-              <div>
-                <i className="bi bi-android2 fs-4 text-warning"></i>
-                <p className="mb-0 mt-1">{data.platformUsage.android} Users<br /><small className="text-muted">Android</small></p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Conversion Funnel */}
-        <div className="card mb-4">
-          <div className="card-header">
-            <h6 className="mb-0">Conversion Funnel</h6>
-          </div>
-          <div className="card-body">
-            <ul className="list-group">
-              <li className="list-group-item d-flex justify-content-between">
-                <span>Free Users</span>
-                <span>{data.conversion.free}</span>
-              </li>
-              <li className="list-group-item d-flex justify-content-between">
-                <span>Trial Users</span>
-                <span>{data.conversion.trial}</span>
-              </li>
-              <li className="list-group-item d-flex justify-content-between">
-                <span>Paid Users</span>
-                <span>{data.conversion.paid}</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      {/* Right Side Charts */}
-      <div className="col-md-6">
-        {/* Usage Heatmap Placeholder */}
-        <div className="card mb-4">
-          <div className="card-header d-flex justify-content-between align-items-center">
-            <h6 className="mb-0">Usage Heatmap</h6>
-            <span className="badge bg-secondary">By Day/Hour</span>
-          </div>
-          <div className="card-body">
-            <div className="chart-placeholder text-center text-muted" style={{ height: '200px', backgroundColor: '#f8f9fa', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <small>Heatmap visualization coming here</small>
-            </div>
-          </div>
-        </div>
-
-        {/* Top Questions */}
-        <div className="card mb-4">
-          <div className="card-header d-flex justify-content-between align-items-center">
-            <h6 className="mb-0">Top 10 Most Asked Topics</h6>
-            <span className="badge bg-primary">Global</span>
-          </div>
-          <div className="card-body">
-            <ul className="list-group">
-              {data.topTopics.map((topic, index) => (
-                <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
-                  <div className="text-truncate" style={{ maxWidth: '70%' }} title={topic.text}>
-                    {topic.text}
+                    </div>
                   </div>
-                  <span className="badge bg-primary rounded-pill">{topic.count}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
 
-        {/* User Growth Chart */}
-        <div className="card">
-          <div className="card-header d-flex justify-content-between align-items-center">
-            <h6 className="mb-0">User Growth (Monthly)</h6>
-          </div>
-          <div className="card-body">
-            <div style={{ height: '250px' }}>
-              {/* Chart.js Line chart component (same as before) */}
-              <Line
-                data={{
-                  labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
-                  datasets: [
-                    {
-                      label: 'New Users',
-                      data: data.userGrowth.new,
-                      borderColor: 'rgb(75, 192, 192)',
-                      backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                      tension: 0.3,
-                      fill: true
-                    },
-                    {
-                      label: 'Active Users',
-                      data: data.userGrowth.active,
-                      borderColor: 'rgb(54, 162, 235)',
-                      backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                      tension: 0.3,
-                      fill: true
-                    }
-                  ]
-                }}
-                options={{
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  plugins: {
-                    legend: { position: 'top' },
-                    tooltip: { mode: 'index', intersect: false }
-                  },
-                  scales: {
-                    y: {
-                      beginAtZero: true,
-                      ticks: {
-                        callback: value => value.toLocaleString()
-                      }
-                    },
-                    x: {
-                      grid: { display: false }
-                    }
-                  }
-                }}
-              />
+                  {/* Platform Usage */}
+                  <div className="card mb-4">
+                    <div className="card-header d-flex justify-content-between align-items-center">
+                      <h6 className="mb-0">Platform Usage Breakdown</h6>
+                    </div>
+                    <div className="card-body">
+                      <div className="d-flex justify-content-around text-center">
+                        <div>
+                          <i className="bi bi-globe2 fs-4 text-primary"></i>
+                          <p className="mb-0 mt-1">{data.platformUsage.web} Users<br /><small className="text-muted">Web</small></p>
+                        </div>
+                        <div>
+                          <i className="bi bi-phone fs-4 text-success"></i>
+                          <p className="mb-0 mt-1">{data.platformUsage.ios} Users<br /><small className="text-muted">iOS</small></p>
+                        </div>
+                        <div>
+                          <i className="bi bi-android2 fs-4 text-warning"></i>
+                          <p className="mb-0 mt-1">{data.platformUsage.android} Users<br /><small className="text-muted">Android</small></p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Conversion Funnel */}
+                  <div className="card mb-4">
+                    <div className="card-header">
+                      <h6 className="mb-0">Conversion Funnel</h6>
+                    </div>
+                    <div className="card-body">
+                      {data.conversionFunnel && data.conversionFunnel.length > 0 ? (
+                        <ul className="list-group">
+                          {data.conversionFunnel.map((item, index) => (
+                            <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
+                              <span className="d-flex align-items-center">
+                                <span className={`badge me-2 ${
+                                  item.tier === 'Free Tier' ? 'bg-light text-dark' :
+                                  item.tier === 'Gold' ? 'bg-warning text-dark' :
+                                  item.tier === 'Silver' ? 'bg-secondary' :
+                                  item.tier === 'Platinum' ? 'bg-primary' :
+                                  'bg-info'
+                                }`}>
+                                  {item.tier}
+                                </span>
+                              </span>
+                              <span className="fw-bold">{item.count}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <div className="text-center text-muted py-3">
+                          <small>No conversion data available</small>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Side Charts */}
+                <div className="col-md-6">
+                  {/* Usage Heatmap */}
+                  <div className="card mb-4">
+                    <div className="card-header d-flex justify-content-between align-items-center">
+                      <h6 className="mb-0">Usage Heatmap</h6>
+                      <span className="badge bg-secondary">By Day/Hour</span>
+                    </div>
+                    <div className="card-body">
+                      {renderHeatmap()}
+                    </div>
+                  </div>
+
+                  {/* Top Questions */}
+                  <div className="card mb-4">
+                    <div className="card-header d-flex justify-content-between align-items-center">
+                      <h6 className="mb-0">Top 10 Most Asked Topics</h6>
+                      <span className="badge bg-primary">Global</span>
+                    </div>
+                    <div className="card-body">
+                      <ul className="list-group">
+                        {data.topTopics.map((topic, index) => (
+                          <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
+                            <div className="text-truncate" style={{ maxWidth: '70%' }} title={topic.text}>
+                              {topic.content}
+                            </div>
+                            <span className="badge bg-primary rounded-pill">{topic.count}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+
+                  {/* User Growth Chart */}
+                  {/* <div className="card">
+                    <div className="card-header d-flex justify-content-between align-items-center">
+                      <h6 className="mb-0">User Growth (Monthly)</h6>
+                    </div>
+                    <div className="card-body">
+                      <div style={{ height: '250px' }}>
+                        <Line
+                          data={{
+                            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+                            datasets: [
+                              {
+                                label: 'New Users',
+                                data: data.userGrowth.new,
+                                borderColor: 'rgb(75, 192, 192)',
+                                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                                tension: 0.3,
+                                fill: true
+                              },
+                              {
+                                label: 'Active Users',
+                                data: data.userGrowth.active,
+                                borderColor: 'rgb(54, 162, 235)',
+                                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                                tension: 0.3,
+                                fill: true
+                              }
+                            ]
+                          }}
+                          options={{
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                              legend: { position: 'top' },
+                              tooltip: { mode: 'index', intersect: false }
+                            },
+                            scales: {
+                              y: {
+                                beginAtZero: true,
+                                ticks: {
+                                  callback: value => value.toLocaleString()
+                                }
+                              },
+                              x: {
+                                grid: { display: false }
+                              }
+                            }
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div> */}
+
+                  
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
 
 
           {/* Recent Feedbacks */}
