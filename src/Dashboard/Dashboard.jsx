@@ -36,6 +36,9 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [analyticsData, setAnalyticsData] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [user,setUser] = useState(null);
+
+
   const [adminNote, setAdminNote] = useState('');
   const [flagReason, setFlagReason] = useState('');
   const [dashboardData , setdashboardData] = useState(null);
@@ -43,6 +46,8 @@ const Dashboard = () => {
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
+
+ 
 
 
   // Register Chart.js components
@@ -55,6 +60,22 @@ const Dashboard = () => {
     Tooltip,
     Legend
   );
+
+   const fetchSelectedUser = async (id) => {
+      try {
+        const response = await axios.get(`${BASE_URL}/admin/users/${id}`);
+        setUser(response.data)
+      } catch (error) {
+        console.error('Error fetching user:', error);
+      }
+    };
+
+  useEffect(() => {
+    if(selectedUser?.id){
+      fetchSelectedUser(selectedUser.id)
+    }
+
+  },[])
 
   // Demo data for visualization
   // const demoAnalyticsData = {
@@ -129,7 +150,7 @@ const Dashboard = () => {
   // Calculate start index for displaying entries
   const startIndex = (currentPage - 1) * itemsPerPage;
 
-
+ { console.log("Selected User", selectedUser)}
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -390,11 +411,15 @@ const Dashboard = () => {
     </div>
   );
 
-  const renderUserProfile = () => (
+  const renderUserProfile = () => 
+    
+    
+    (
+    
     <div className="card border-0 shadow-sm">
       <div className="card-header bg-white border-bottom">
         <div className="d-flex justify-content-between align-items-center">
-          <h5 className="card-title mb-0">User Profile: {selectedUser.name}</h5>
+          <h5 className="card-title mb-0">User Profile: {selectedUser.full_name}</h5>
           <button className="btn btn-sm btn-outline-secondary" onClick={() => setSelectedUser(null)}>
             Back to list
           </button>
@@ -406,12 +431,12 @@ const Dashboard = () => {
             <div className="mb-3">
               <h6>Basic Information</h6>
               <div className="p-3 bg-light rounded">
-                <p><strong>Name:</strong> {selectedUser.name}</p>
+                <p><strong>Name:</strong> {selectedUser.full_name}</p>
                 <p><strong>Email:</strong> {selectedUser.email}</p>
-                <p><strong>Joined:</strong> {new Date(selectedUser.createdAt).toLocaleDateString()}</p>
+                <p><strong>Joined:</strong> {new Date(selectedUser.created_at).toLocaleDateString()}</p>
                 <p><strong>Status:</strong>
-                  <span className={`badge ${selectedUser.active ? 'bg-success' : 'bg-secondary'} ms-2`}>
-                    {selectedUser.active ? 'Active' : 'Inactive'}
+                  <span className={`badge ${selectedUser.status ? 'bg-success' : 'bg-secondary'} ms-2`}>
+                    {selectedUser.status === "active" ? 'Active' : 'Inactive'}
                   </span>
                 </p>
               </div>
@@ -420,8 +445,8 @@ const Dashboard = () => {
             <div className="mb-3">
               <h6>Device Information</h6>
               <div className="p-3 bg-light rounded">
-                <p><strong>Platform:</strong> {selectedUser.device || 'Unknown'}</p>
-                <p><strong>First Used:</strong> {selectedUser.firstUsed ? formatTimeDifference(selectedUser.firstUsed) : 'Unknown'}</p>
+                <p><strong>Platform:</strong> {selectedUser.device_usage?.web > 0 || 'Unknown'}</p>
+                <p><strong>First Used:</strong> {selectedUser.created_at ? formatTimeDifference(selectedUser.firstUsed) : 'Unknown'}</p>
                 <p><strong>Last Active:</strong> {formatTimeDifference(selectedUser.lastActive)}</p>
               </div>
             </div>
