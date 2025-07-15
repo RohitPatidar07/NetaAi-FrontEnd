@@ -469,6 +469,7 @@ const AllUsers = () => {
                                     <th className="border-0 fw-semibold">Tier</th>
                                     <th className="border-0 fw-semibold">Location</th>
                                     <th className="border-0 fw-semibold">Joined</th>
+                                    <th className='border-0 fw-semibold'>Refferal</th>
                                     <th className="border-0 fw-semibold">Actions</th>
                                 </tr>
                             </thead>
@@ -589,6 +590,7 @@ const AllUsers = () => {
                                         <td className="text-muted">
                                             <small>{new Date(user.created_at).toLocaleDateString('en-GB')}</small>
                                         </td>
+                                        <td> {user.referredBy || 'N/A'}</td>
                                         <td>
                                             <div className="d-flex">
                                                 <a

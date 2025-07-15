@@ -33,12 +33,7 @@ import axios from 'axios';
 const UpdateProfile = () => {
     const location = useLocation();
     const userData = location.state?.userData || {};
-    
-
-   
      const token = localStorage.getItem('token');
-     const is_admin = localStorage.getItem('is_admin');
-      const role = is_admin === 1 ? "admin": "user";
 
      console.log("locUSER Data", userData);
 
@@ -65,8 +60,12 @@ const UpdateProfile = () => {
       const [flagReason, setFlagReason] = useState('');
 
 console.log('User Data:', formData)
-    const deviceUsageList = Object.entries(userData?.device_usage || {})
-    .filter(([platform, count]) => count > 0);
+    const [deviceUsage] = useState({
+        web: userData?.device_usage?.includes('web') || false,
+        ios: userData?.device_usage?.includes('ios') || false,
+        android: userData?.device_usage?.includes('android') || false,
+        platform_started: userData?.platform_started || 'web'
+    });
 
     // const fetchUserData = async (userData) => {
     //     try {
@@ -171,27 +170,27 @@ console.log('User Data:', formData)
         }
     };
 
-    const handleCompUser = async (plan, duration_days = 30, reason = '') => {
+    const handleCompUser = async (plan, duration) => {
         try {
-            const response = await axios.post(
-                `${BASE_URL}/admin/users/${userData.id}/comp-access`,
-                {
-                    plan,
-                    duration_days,
-                    reason
-                },
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    }
+            const compEndDate = new Date();
+            compEndDate.setMonth(compEndDate.getMonth() + duration);
+            
+            const response = await axios.post(`${BASE_URL}/admin/users/${userData.id}/comp-access`, {
+                plan: plan,
+                comped_until: compEndDate.toISOString().split('T')[0]
+            },
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`
                 }
-            );
+            }
+        );
 
             if (response.status === 200) {
                 setFormData(prev => ({
                     ...prev,
-                    plan,
-                    comped_until: new Date(Date.now() + duration_days * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+                    plan: plan,
+                    comped_until: compEndDate.toISOString().split('T')[0]
                 }));
                 setSubmitStatus('success');
             }
@@ -325,7 +324,7 @@ console.log('User Data:', formData)
 
     }
 
-    const currentPlanName = plans?.find(p => p.id === parseInt(formData.plan))?.plan_name || userData.tier || 'Plan';
+    const [selectedCompPlan, setSelectedCompPlan] = useState(formData.plan || '');
 
 
     return (
@@ -413,9 +412,6 @@ console.log('User Data:', formData)
                                                 </span>
                                             </div>
                                         )}
-
-                                        { userData?.is_admin !== 1 ? ( "") :
-                                        (
                                         <button
                                             type="button"
                                             className="btn btn-sm btn-primary rounded-circle position-absolute bottom-0 end-10"
@@ -423,9 +419,6 @@ console.log('User Data:', formData)
                                         >
                                             <Camera size={16} />
                                         </button>
-                                        )
-}
-
                                         <input
                                             id="profileImageInput"
                                             type="file"
@@ -433,7 +426,6 @@ console.log('User Data:', formData)
                                             className="d-none"
                                             onChange={handleImageUpload}
                                         />
-  
                                     </div>
                                     <p className="text-muted small mb-0">
                                         Click the camera icon to upload a new photo
@@ -441,9 +433,7 @@ console.log('User Data:', formData)
                                     <p className="text-muted small">
                                         JPG, PNG or GIF (max. 5MB)
                                     </p>
-
-                                    
-                                       {profileImage && userData?.is_admin !== 1 && (
+                                    {profileImage && userData.is_admin !== 1 && (
                                         <button
                                             type="button"
                                             className="btn btn-outline-danger btn-sm mt-2"
@@ -452,7 +442,7 @@ console.log('User Data:', formData)
                                             <X size={16} className="me-1" />
                                             Remove Photo
                                         </button>
-                                    )} 
+                                    )}
                                 </div>
                             </div>
 
@@ -502,17 +492,35 @@ console.log('User Data:', formData)
                                     <div className="mb-3">
                                         <small className="text-muted d-block mb-2">Device Usage</small>
                                         <div className="d-flex flex-wrap gap-2">
-                                            {deviceUsageList.length === 0 ? (
-                                                <span className="text-muted">No device usage data</span>
-                                            ) : (
-                                                deviceUsageList.map(([platform, count]) => (
-                                                    <div key={platform} className="badge bg-primary-subtle text-primary d-flex align-items-center">
-                                                        {getDeviceIcon(platform)}
-                                                        {platform.charAt(0).toUpperCase() + platform.slice(1)}: {count}
-                                                    </div>
-                                                ))
+                                            {deviceUsage.web && (
+                                                <div className={`badge bg-primary-subtle text-primary d-flex align-items-center ${deviceUsage.platform_started === 'web' ? 'border border-primary' : ''}`}>
+                                                    <Globe size={14} className="me-1" />
+                                                    Web
+                                                    {deviceUsage.platform_started === 'web' && (
+                                                        <span className="ms-1" title="Started here">⭐</span>
+                                                    )}
+                                                </div>
+                                            )}
+                                            {deviceUsage.ios && (
+                                                <div className={`badge bg-success-subtle text-success d-flex align-items-center ${deviceUsage.platform_started === 'ios' ? 'border border-success' : ''}`}>
+                                                    <Smartphone size={14} className="me-1" />
+                                                    iOS
+                                                    {deviceUsage.platform_started === 'ios' && (
+                                                        <span className="ms-1" title="Started here">⭐</span>
+                                                    )}
+                                                </div>
+                                            )}
+                                            {deviceUsage.android && (
+                                                <div className={`badge bg-warning-subtle text-warning d-flex align-items-center ${deviceUsage.platform_started === 'android' ? 'border border-warning' : ''}`}>
+                                                    <Monitor size={14} className="me-1" />
+                                                    Android
+                                                    {deviceUsage.platform_started === 'android' && (
+                                                        <span className="ms-1" title="Started here">⭐</span>
+                                                    )}
+                                                </div>
                                             )}
                                         </div>
+                                        <small className="text-muted">⭐ Platform where user started</small>
                                     </div>
 
                                     {/* Login Count */}
@@ -698,24 +706,41 @@ console.log('User Data:', formData)
                                                 <div className="alert alert-info mb-2">
                                                     <small>
                                                         <Gift size={14} className="me-1" />
-                                                        Comped until: {new Date(formData).toLocaleDateString()}
+                                                        Comped until: {new Date(formData.comped_until).toLocaleDateString()}
                                                     </small>
                                                 </div>
                                             )}
+                                            <div className="mb-2">
+    <label className="form-label fw-semibold">Select Plan for Complimentary Access</label>
+    <select
+        className="form-select"
+        value={selectedCompPlan}
+        onChange={e => setSelectedCompPlan(e.target.value)}
+    >
+        <option value="" disabled>Select a plan</option>
+        {plans && plans.map(plan => (
+            <option key={plan.id} value={plan.id}>
+                {plan.plan_name}
+            </option>
+        ))}
+    </select>
+</div>
                                             <div className="d-flex gap-2 flex-wrap">
                                                 <button
                                                     type="button"
                                                     className="btn btn-outline-warning btn-sm"
-                                                    onClick={() => handleCompUser(formData.plan, 30)}
+                                                    onClick={() => handleCompUser(selectedCompPlan, 30)}
+                                                    disabled={!selectedCompPlan}
                                                 >
-                                                    Comp {currentPlanName} (1 month)
+                                                    Comp {plans?.find(p => p.id === parseInt(selectedCompPlan))?.plan_name || 'Plan'} (1 month)
                                                 </button>
                                                 <button
                                                     type="button"
                                                     className="btn btn-outline-primary btn-sm"
-                                                    onClick={() => handleCompUser(formData.plan, 365)}
+                                                    onClick={() => handleCompUser(selectedCompPlan, 365)}
+                                                    disabled={!selectedCompPlan}
                                                 >
-                                                    Comp {currentPlanName} (1 year)
+                                                    Comp {plans?.find(p => p.id === parseInt(selectedCompPlan))?.plan_name || 'Plan'} (1 year)
                                                 </button>
                                             </div>
                                             <small className="text-muted">
