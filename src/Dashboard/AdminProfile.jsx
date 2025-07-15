@@ -16,7 +16,7 @@ const AdminProfile = () => {
   const fetchUserData = async () => {
     try {
       const res = await axios.get(
-        `${BASE_URL}/user/getUserById/13`
+        `${BASE_URL}/user/getUserById/156`
       );
       const user = res.data.data;
 

@@ -33,14 +33,14 @@ import axios from 'axios';
 const UpdateProfile = () => {
     const location = useLocation();
     const userData = location.state?.userData || {};
-    
 
-   
-     const token = localStorage.getItem('token');
-     const is_admin = localStorage.getItem('is_admin');
-      const role = is_admin === 1 ? "admin": "user";
 
-     console.log("locUSER Data", userData);
+
+    const token = localStorage.getItem('token');
+    const is_admin = localStorage.getItem('is_admin');
+    const role = is_admin === 1 ? "admin" : "user";
+
+    console.log("locUSER Data", userData);
 
     const [formData, setFormData] = useState({
         full_name: '',
@@ -55,18 +55,18 @@ const UpdateProfile = () => {
     });
 
 
-    const [ comedpedData, setCompedData] = useState({
+    const [comedpedData, setCompedData] = useState({
         compedplan: "",
         duration: "",
-            
+
     });
 
-     const [adminNote, setAdminNote] = useState('');
-      const [flagReason, setFlagReason] = useState('');
+    const [adminNote, setAdminNote] = useState('');
+    const [flagReason, setFlagReason] = useState('');
 
-console.log('User Data:', formData)
+    console.log('User Data:', formData)
     const deviceUsageList = Object.entries(userData?.device_usage || {})
-    .filter(([platform, count]) => count > 0);
+        .filter(([platform, count]) => count > 0);
 
     // const fetchUserData = async (userData) => {
     //     try {
@@ -120,6 +120,7 @@ console.log('User Data:', formData)
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitStatus, setSubmitStatus] = useState(null);
     const [profileImage, setProfileImage] = useState(userData?.image || null);
+    const [analyticsData, setAnalyticsData] = useState({});
 
     // Helper functions
     const getDeviceIcon = (platform) => {
@@ -139,10 +140,10 @@ console.log('User Data:', formData)
         if (!plans || !planId) {
             return <span className="badge bg-light text-dark">Free</span>;
         }
-        
+
         const plan = plans.find(p => p.id === parseInt(planId));
         const planName = plan?.plan_name || 'Free';
-        
+
         switch (planName.toLowerCase()) {
             case 'free':
             case 'free tier':
@@ -201,6 +202,21 @@ console.log('User Data:', formData)
         }
     };
 
+
+    useEffect(() => {
+        const fetchAnalyticData = async (id) => {
+            const response = await axios.get(`${BASE_URL}/admin/analytics/user/${id}`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+            console.log("analytics response", response.data.data);
+            setAnalyticsData(response?.data?.data);
+        }
+
+        fetchAnalyticData(userData.id);
+    }, [userData, userData.id])
+
     const handleInputChange = (field, value) => {
         setFormData(prev => ({
             ...prev,
@@ -246,9 +262,9 @@ console.log('User Data:', formData)
         return Object.keys(errors).length === 0;
     };
 
-   const [plans, setPlans] = useState(null);
+    const [plans, setPlans] = useState(null);
 
-   useEffect(() => {
+    useEffect(() => {
         const fetchPlans = async () => {
             try {
                 const response = await axios.get(`${BASE_URL}/plan/subscription-plans`);
@@ -281,7 +297,7 @@ console.log('User Data:', formData)
         newformData.append("licenseNumber", formData.license_number);
         newformData.append("status", formData.status);
         newformData.append("plan", formData.plan); // Send plan ID
-        
+
         if (formData.comped_until) {
             newformData.append("comped_until", formData.comped_until);
         }
@@ -299,7 +315,7 @@ console.log('User Data:', formData)
                 {
                     headers: {
                         "Content-Type": "multipart/form-data",
-                         Authorization: `Bearer ${token}`,
+                        Authorization: `Bearer ${token}`,
                     }
                 }
             );
@@ -320,7 +336,7 @@ console.log('User Data:', formData)
 
     const handleComp = async (e) => {
         e.preventDefault();
-        
+
 
 
     }
@@ -414,17 +430,17 @@ console.log('User Data:', formData)
                                             </div>
                                         )}
 
-                                        { userData?.is_admin !== 1 ? ( "") :
-                                        (
-                                        <button
-                                            type="button"
-                                            className="btn btn-sm btn-primary rounded-circle position-absolute bottom-0 end-10"
-                                            onClick={() => document.getElementById('profileImageInput').click()}
-                                        >
-                                            <Camera size={16} />
-                                        </button>
-                                        )
-}
+                                        {userData?.is_admin !== 1 ? ("") :
+                                            (
+                                                <button
+                                                    type="button"
+                                                    className="btn btn-sm btn-primary rounded-circle position-absolute bottom-0 end-10"
+                                                    onClick={() => document.getElementById('profileImageInput').click()}
+                                                >
+                                                    <Camera size={16} />
+                                                </button>
+                                            )
+                                        }
 
                                         <input
                                             id="profileImageInput"
@@ -433,7 +449,7 @@ console.log('User Data:', formData)
                                             className="d-none"
                                             onChange={handleImageUpload}
                                         />
-  
+
                                     </div>
                                     <p className="text-muted small mb-0">
                                         Click the camera icon to upload a new photo
@@ -442,8 +458,8 @@ console.log('User Data:', formData)
                                         JPG, PNG or GIF (max. 5MB)
                                     </p>
 
-                                    
-                                       {profileImage && userData?.is_admin !== 1 && (
+
+                                    {profileImage && userData?.is_admin !== 1 && (
                                         <button
                                             type="button"
                                             className="btn btn-outline-danger btn-sm mt-2"
@@ -452,10 +468,83 @@ console.log('User Data:', formData)
                                             <X size={16} className="me-1" />
                                             Remove Photo
                                         </button>
-                                    )} 
+                                    )}
                                 </div>
                             </div>
 
+                            {/* User Analytics Card */}
+                            {/* <div className="card border-0 shadow-sm mt-4">
+                                <div className="card-header bg-white border-bottom">
+                                    <h5 className="card-title mb-0">
+                                        <Activity size={20} className="me-2" />
+                                        User Analytics
+                                    </h5>
+                                </div>
+                                <div className="card-body">
+                                    <div className="d-flex align-items-center mb-3">
+                                        <Calendar size={16} className="text-muted me-2" />
+                                        <div>
+                                            <small className="text-muted d-block">Date Joined</small>
+                                            <span className="fw-medium">
+                                                {new Date(userData.created_at).toLocaleDateString('en-US', {
+                                                    year: 'numeric',
+                                                    month: 'long',
+                                                    day: 'numeric'
+                                                })}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div className="d-flex align-items-center mb-3">
+                                        <UserCheck size={16} className="text-muted me-2" />
+                                        <div>
+                                            <small className="text-muted d-block">Last Active</small>
+                                            <span className="fw-medium">
+                                                {userData.last_active
+                                                    ? new Date(userData.last_active).toLocaleDateString('en-US', {
+                                                        year: 'numeric',
+                                                        month: 'short',
+                                                        day: 'numeric'
+                                                    })
+                                                    : 'Never'
+                                                }
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div className="mb-3">
+                                        <small className="text-muted d-block mb-2">Device Usage</small>
+                                        <div className="d-flex flex-wrap gap-2">
+                                            {deviceUsageList.length === 0 ? (
+                                                <span className="text-muted">No device usage data</span>
+                                            ) : (
+                                                deviceUsageList.map(([platform, count]) => (
+                                                    <div key={platform} className="badge bg-primary-subtle text-primary d-flex align-items-center">
+                                                        {getDeviceIcon(platform)}
+                                                        {platform.charAt(0).toUpperCase() + platform.slice(1)}: {count}
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="mb-3">
+                                        <small className="text-muted d-block mb-2">Average Message Per Session</small>
+                                        <span className="d-flex flex-wrap text-black">
+                                            {analyticsData?.avg_messages_per_session || 0}
+                                        </span>
+                                    </div>
+
+                                    {userData.login_count && (
+                                        <div className="d-flex align-items-center">
+                                            <Settings size={16} className="text-muted me-2" />
+                                            <div>
+                                                <small className="text-muted d-block">Total Logins</small>
+                                                <span className="fw-medium">{userData.login_count}</span>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div> */}
                             {/* User Analytics Card */}
                             <div className="card border-0 shadow-sm mt-4">
                                 <div className="card-header bg-white border-bottom">
@@ -465,6 +554,7 @@ console.log('User Data:', formData)
                                     </h5>
                                 </div>
                                 <div className="card-body">
+
                                     {/* Date Joined */}
                                     <div className="d-flex align-items-center mb-3">
                                         <Calendar size={16} className="text-muted me-2" />
@@ -486,15 +576,33 @@ console.log('User Data:', formData)
                                         <div>
                                             <small className="text-muted d-block">Last Active</small>
                                             <span className="fw-medium">
-                                                {userData.last_active 
+                                                {userData.last_active
                                                     ? new Date(userData.last_active).toLocaleDateString('en-US', {
                                                         year: 'numeric',
                                                         month: 'short',
                                                         day: 'numeric'
                                                     })
-                                                    : 'Never'
-                                                }
+                                                    : 'Never'}
                                             </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Total Sessions & Messages */}
+                                    <div className="mb-3">
+                                        <small className="text-muted d-block mb-1">Sessions & Messages</small>
+                                        <div className="d-flex flex-wrap gap-4">
+                                            <div>
+                                                <span className="text-muted">Total Sessions:</span>{" "}
+                                                <span className="fw-semibold">{analyticsData?.total_sessions || 0}</span>
+                                            </div>
+                                            <div>
+                                                <span className="text-muted">Total Messages:</span>{" "}
+                                                <span className="fw-semibold">{analyticsData?.total_messages || 0}</span>
+                                            </div>
+                                            <div>
+                                                <span className="text-muted">Avg Msg/Session:</span>{" "}
+                                                <span className="fw-semibold">{analyticsData?.avg_messages_per_session || 0}</span>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -502,18 +610,49 @@ console.log('User Data:', formData)
                                     <div className="mb-3">
                                         <small className="text-muted d-block mb-2">Device Usage</small>
                                         <div className="d-flex flex-wrap gap-2">
-                                            {deviceUsageList.length === 0 ? (
+                                            {Object.entries(analyticsData?.platform_usage || {}).every(([_, val]) => val === 0) ? (
                                                 <span className="text-muted">No device usage data</span>
                                             ) : (
-                                                deviceUsageList.map(([platform, count]) => (
-                                                    <div key={platform} className="badge bg-primary-subtle text-primary d-flex align-items-center">
-                                                        {getDeviceIcon(platform)}
-                                                        {platform.charAt(0).toUpperCase() + platform.slice(1)}: {count}
-                                                    </div>
-                                                ))
+                                                Object.entries(analyticsData?.platform_usage || {}).map(([platform, count]) =>
+                                                    count > 0 ? (
+                                                        <div key={platform} className="badge bg-primary-subtle text-primary d-flex align-items-center">
+                                                            {getDeviceIcon(platform)}
+                                                            {platform.charAt(0).toUpperCase() + platform.slice(1)}: {count}
+                                                        </div>
+                                                    ) : null
+                                                )
                                             )}
                                         </div>
                                     </div>
+
+                                    {/* Top Topics */}
+                                    {analyticsData?.top_topics?.length > 0 && (
+                                        <div className="mb-3">
+                                            <small className="text-muted d-block mb-2">Top Topics</small>
+                                            <div className="d-flex flex-wrap gap-2">
+                                                {analyticsData.top_topics.map((topic, index) => (
+                                                    <span key={index} className="badge bg-info-subtle text-dark">
+                                                        {topic.topic} ({topic.count})
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Session Trend */}
+                                    {analyticsData?.session_trend?.length > 0 && (
+                                        <div className="mb-3">
+                                            <small className="text-muted d-block mb-2">Session Trend</small>
+                                            <ul className="list-unstyled mb-0">
+                                                {analyticsData.session_trend.map((session, index) => (
+                                                    <li key={index} className="d-flex justify-content-between">
+                                                        <span>{new Date(session.date).toLocaleDateString()}</span>
+                                                        <span className="fw-semibold">{session.count} session{session.count > 1 ? 's' : ''}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    )}
 
                                     {/* Login Count */}
                                     {userData.login_count && (
@@ -527,6 +666,7 @@ console.log('User Data:', formData)
                                     )}
                                 </div>
                             </div>
+
                         </div>
 
                         {/* Personal Information */}
@@ -684,7 +824,7 @@ console.log('User Data:', formData)
                                                         </option>
                                                     ))
                                                 }
-                                               
+
                                             </select>
                                         </div>
 

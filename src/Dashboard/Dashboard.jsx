@@ -36,7 +36,7 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [analyticsData, setAnalyticsData] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [user,setUser] = useState(null);
+  const [user, setUser] = useState(null);
 
 
   const [adminNote, setAdminNote] = useState('');
@@ -47,7 +47,7 @@ const Dashboard = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
- 
+
   const token = localStorage.getItem('token');
 
 
@@ -62,27 +62,27 @@ const Dashboard = () => {
     Legend
   );
 
-   const fetchSelectedUser = async (id) => {
-      try {
-        const response = await axios.get(`${BASE_URL}/admin/users/${id}`,
-          {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-     
-        setUser(response.data)
-      } catch (error) {
-        console.error('Error fetching user:', error);
-      }
-    };
+  const fetchSelectedUser = async (id) => {
+    try {
+      const response = await axios.get(`${BASE_URL}/admin/users/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+      setUser(response.data)
+    } catch (error) {
+      console.error('Error fetching user:', error);
+    }
+  };
 
   useEffect(() => {
-    if(selectedUser?.id){
+    if (selectedUser?.id) {
       fetchSelectedUser(selectedUser.id)
     }
 
-  },[])
+  }, [])
 
   // Demo data for visualization
   // const demoAnalyticsData = {
@@ -143,7 +143,7 @@ const Dashboard = () => {
   // Heatmap component for usage visualization
   const renderHeatmap = () => {
     const heatmapData = data.usageHeatmap;
-    
+
     if (!heatmapData || heatmapData.length === 0) {
       return (
         <div className="text-center text-muted" style={{ height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -154,31 +154,31 @@ const Dashboard = () => {
 
     // Days of the week
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    
+
     // Hours from 0 to 23
     const hours = Array.from({ length: 24 }, (_, i) => i);
-    
+
     // Create a map for quick lookup of count by day and hour
     const dataMap = new Map();
     heatmapData.forEach(item => {
       const key = `${item.day}-${item.hour}`;
       dataMap.set(key, item.count);
     });
-    
+
     // Find max count for color scaling
     const maxCount = Math.max(...heatmapData.map(item => item.count), 1);
-    
+
     // Function to get color intensity based on count
     const getColorIntensity = (count) => {
       if (count === 0) return 0;
       return (count / maxCount);
     };
-    
+
     // Function to get background color
     const getBackgroundColor = (count) => {
       const intensity = getColorIntensity(count);
       if (intensity === 0) return '#f8f9fa';
-      
+
       // Use a blue gradient
       const alpha = Math.max(0.1, intensity);
       return `rgba(54, 162, 235, ${alpha})`;
@@ -208,7 +208,7 @@ const Dashboard = () => {
               </div>
             ))}
           </div>
-          
+
           {/* Heatmap grid */}
           {days.map((dayName, dayIndex) => (
             <div key={dayIndex} style={{ display: 'flex', marginBottom: '2px' }}>
@@ -228,13 +228,13 @@ const Dashboard = () => {
               >
                 {dayName}
               </div>
-              
+
               {/* Hour cells */}
               {hours.map(hour => {
                 const key = `${dayIndex}-${hour}`;
                 const count = dataMap.get(key) || 0;
                 const backgroundColor = getBackgroundColor(count);
-                
+
                 return (
                   <div
                     key={hour}
@@ -271,7 +271,7 @@ const Dashboard = () => {
               })}
             </div>
           ))}
-          
+
           {/* Legend */}
           <div style={{ marginTop: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
             <span style={{ fontSize: '11px', color: '#6c757d' }}>Less</span>
@@ -308,7 +308,7 @@ const Dashboard = () => {
   // Calculate start index for displaying entries
   const startIndex = (currentPage - 1) * itemsPerPage;
 
- { console.log("Selected User", selectedUser)}
+  { console.log("Selected User", selectedUser) }
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -338,12 +338,12 @@ const Dashboard = () => {
 
     const fetchAnalytics = async () => {
       try {
-        const response = await axios.get(`${BASE_URL}/admin/analytics/global`,{
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-          
+        const response = await axios.get(`${BASE_URL}/admin/analytics/global`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
         console.log("dashAPI !!", response.data)
         setdashboardData(response.data);
 
@@ -363,8 +363,8 @@ const Dashboard = () => {
 
   const stats = [
     { title: 'Total Users', value: users, change: '+12%', icon: Users, color: 'primary' },
-    { title: 'Active Users', value:  dashboardData?.data?.active_users?.daily, change: '+5%', icon: MessageSquare, color: 'success' },
-    { title: 'DAU', value: analyticsData?.dau || '0', change: '+3%', icon: Activity, color: 'info' },
+    { title: 'Daily Active Users', value: dashboardData?.data?.active_users?.daily, change: '+5%', icon: MessageSquare, color: 'success' },
+    // { title: 'DAU', value: analyticsData?.dau || '0', change: '+3%', icon: Activity, color: 'info' },
     // { title: 'Avg Session', value: analyticsData?.avgSessionDuration ? `${Math.floor(analyticsData.avgSessionDuration / 60)}m` : '0m', change: '+2%', icon: Clock, color: 'warning' },
   ];
 
@@ -574,11 +574,11 @@ const Dashboard = () => {
     </div>
   );
 
-  const renderUserProfile = () => 
-    
-    
-    (
-    
+  const renderUserProfile = () =>
+
+
+  (
+
     <div className="card border-0 shadow-sm">
       <div className="card-header bg-white border-bottom">
         <div className="d-flex justify-content-between align-items-center">
@@ -721,9 +721,9 @@ const Dashboard = () => {
                       <div>
                         <h6 className="card-subtitle mb-2 text-muted">{stat.title}</h6>
                         <h3 className="card-title mb-1">{stat.value}</h3>
-                        <small className={`text-${stat.change.startsWith('+') ? 'success' : 'danger'}`}>
+                        {/* <small className={`text-${stat.change.startsWith('+') ? 'success' : 'danger'}`}>
                           {stat.change} from yesterday
-                        </small>
+                        </small> */}
                       </div>
                       <div className={`bg-${stat.color} rounded-3 p-3`}>
                         <stat.icon size={24} className="text-white" />
@@ -821,13 +821,12 @@ const Dashboard = () => {
                           {data.conversionFunnel.map((item, index) => (
                             <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
                               <span className="d-flex align-items-center">
-                                <span className={`badge me-2 ${
-                                  item.tier === 'Free Tier' ? 'bg-light text-dark' :
+                                <span className={`badge me-2 ${item.tier === 'Free Tier' ? 'bg-light text-dark' :
                                   item.tier === 'Gold' ? 'bg-warning text-dark' :
-                                  item.tier === 'Silver' ? 'bg-secondary' :
-                                  item.tier === 'Platinum' ? 'bg-primary' :
-                                  'bg-info'
-                                }`}>
+                                    item.tier === 'Silver' ? 'bg-secondary' :
+                                      item.tier === 'Platinum' ? 'bg-primary' :
+                                        'bg-info'
+                                  }`}>
                                   {item.tier}
                                 </span>
                               </span>
@@ -930,7 +929,7 @@ const Dashboard = () => {
                     </div>
                   </div> */}
 
-                  
+
                 </div>
               </div>
             </div>
