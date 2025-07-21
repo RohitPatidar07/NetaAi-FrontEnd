@@ -18,7 +18,7 @@ const Chatbot = () => {
   const [isSecondPopup, setIsSecondPopup] = useState(false);
   const [dontShowAgain, setDontShowAgain] = useState(false);
   const [messages, setMessages] = useState([]);
-   const [isFirstMessageSent, setIsFirstMessageSent] = useState(false);
+  const [isFirstMessageSent, setIsFirstMessageSent] = useState(false);
   useEffect(() => {
     if (darkMode) {
       document.body.classList.add('chatbot-dark-mode');
@@ -129,7 +129,7 @@ const Chatbot = () => {
         setCollapsed={setSidebarCollapsed}
         darkMode={darkMode}
         setSessionId={setSessionId}
-        setIsFirstMessageSent = {setIsFirstMessageSent}
+        setIsFirstMessageSent={setIsFirstMessageSent}
         setMessages={setMessages}
       />
       {isBaseChatbotRoute ? (
@@ -139,10 +139,10 @@ const Chatbot = () => {
           inputValue={inputValue}
           setInputValue={setInputValue}
           sessionId={sessionId}
-          setIsFirstMessageSent = {setIsFirstMessageSent}
-          isFirstMessageSent = {isFirstMessageSent}
-           setMessages={setMessages}
-           messages={messages || []}
+          setIsFirstMessageSent={setIsFirstMessageSent}
+          isFirstMessageSent={isFirstMessageSent}
+          setMessages={setMessages}
+          messages={messages || []}
         />
       ) : (
         <Outlet />

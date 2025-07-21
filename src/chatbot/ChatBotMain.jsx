@@ -8,7 +8,7 @@ import { MdSmartToy } from "react-icons/md";
 import { useLocation, useNavigate } from 'react-router-dom';
 import { FaRegThumbsUp, FaRegThumbsDown, FaThumbsUp, FaThumbsDown } from "react-icons/fa";
 import "./chatBotMain.css";
-const ChatbotMain = ({ sessionId, isFirstMessageSent, setIsFirstMessageSent, setMessages,messages }) => {
+const ChatbotMain = ({ sessionId, isFirstMessageSent, setIsFirstMessageSent, setMessages, messages }) => {
   const [inputValue, setInputValue] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
@@ -22,11 +22,11 @@ const ChatbotMain = ({ sessionId, isFirstMessageSent, setIsFirstMessageSent, set
   // const [isFirstMessageSent, setIsFirstMessageSent] = useState(false);
   const [guestMessageCount, setGuestMessageCount] = useState(0);
   const [showLimitPopup, setShowLimitPopup] = useState(false);
-  const [suggestions,setSuggestions] = useState([ { title: "What's the different between Afci breaker and a Gfci breaker" },
-    { title: "What slice of wire do I need for a 50 amp oven" },
-    { title: "⁠Can I use Romex wire in a commercial job" },
-    { title: "NEC 210.10" },
-    { title: "Do I need to install a fire rated recessed lights in ADU" },]);
+  const [suggestions, setSuggestions] = useState([{ title: "What's the different between Afci breaker and a Gfci breaker" },
+  { title: "What slice of wire do I need for a 50 amp oven" },
+  { title: "⁠Can I use Romex wire in a commercial job" },
+  { title: "NEC 210.10" },
+  { title: "Do I need to install a fire rated recessed lights in ADU" },]);
   const navigate = useNavigate();
   const userId = localStorage.getItem("user_id") || "anonymous_user";
   const user_name = localStorage.getItem("user_name") || "Guest";
@@ -79,26 +79,26 @@ const ChatbotMain = ({ sessionId, isFirstMessageSent, setIsFirstMessageSent, set
 
 
   // Create new session on mount or page refresh
-   // Create new session on first message
- const createNewSession = async (firstMessage) => {
-  try {
-    if (activeSessionId) return; // If session already exists, do nothing.
+  // Create new session on first message
+  const createNewSession = async (firstMessage) => {
+    try {
+      if (activeSessionId) return; // If session already exists, do nothing.
 
-    const title = firstMessage.substring(0, 30);
+      const title = firstMessage.substring(0, 30);
 
-    // API call to create session only if activeSessionId is null
-    const createRes = await axios.post(`${BASE_URL}/ai/sessions`, {
-      userId,
-      title,
-    });
-     localStorage.setItem("activeSessionId", createRes.data.sessionId); // Store session ID in localStorage
-    setActiveSessionId(createRes.data.sessionId);  // Set the active session ID
-    setSessionTitle(title);
-    setIsFirstMessageSent(true); // Mark that the first message has been sent
-  } catch (error) {
-    console.error("Failed to create new session:", error);
-  }
-};
+      // API call to create session only if activeSessionId is null
+      const createRes = await axios.post(`${BASE_URL}/ai/sessions`, {
+        userId,
+        title,
+      });
+      localStorage.setItem("activeSessionId", createRes.data.sessionId); // Store session ID in localStorage
+      setActiveSessionId(createRes.data.sessionId);  // Set the active session ID
+      setSessionTitle(title);
+      setIsFirstMessageSent(true); // Mark that the first message has been sent
+    } catch (error) {
+      console.error("Failed to create new session:", error);
+    }
+  };
 
   const scrollToBottom = () => {
     if (scrollRef.current) {
@@ -106,96 +106,97 @@ const ChatbotMain = ({ sessionId, isFirstMessageSent, setIsFirstMessageSent, set
     }
   };
 
-   
- const sendMessage = useCallback(
-  async (message) => {
-    const msg = message || inputValue;
-    if (!msg.trim()) return;
 
-    // Limit check
-    if (chatCount > 3) {
-      setShowLimitPopup(true);
-      return;
-    }
+  const sendMessage = useCallback(
+    async (message) => {
+      const msg = message || inputValue;
+      if (!msg.trim()) return;
 
-    const isGuest = !localStorage.getItem("user_id");
-    if (isGuest) {
-      const ip = localStorage.getItem('ip');
-      const response = await axios.post(`${BASE_URL}/ip/increase-chat`, { ip });
-      const { chat_count } = response.data;
-
-      if (isGuest && chat_count >= 3) {
+      // Limit check
+      if (chatCount > 3) {
         setShowLimitPopup(true);
         return;
       }
-    }
 
-    setLoading(true);
-
-    try {
-      const userMsg = { role: "user", content: msg };
-      setMessages((prev) => [...prev, userMsg]);
-      setInputValue("");
-      sendSound.play();
-
+      const isGuest = !localStorage.getItem("user_id");
       if (isGuest) {
-        setGuestMessageCount((prev) => prev + 1);
+        const ip = localStorage.getItem('ip');
+        const response = await axios.post(`${BASE_URL}/ip/increase-chat`, { ip });
+        const { chat_count } = response.data;
+
+        if (isGuest && chat_count >= 3) {
+          setShowLimitPopup(true);
+          return;
+        }
       }
 
-      // Create a session if none exists
-      if (!activeSessionId && !isFirstMessageSent) {
-        await createNewSession(msg); // Create the session only if it doesn't already exist
+      setLoading(true);
+
+      try {
+        const userMsg = { role: "user", content: msg };
+        setMessages((prev) => [...prev, userMsg]);
+        setInputValue("");
+        sendSound.play();
+
+        if (isGuest) {
+          setGuestMessageCount((prev) => prev + 1);
+        }
+
+        // Create a session if none exists
+        if (!activeSessionId && !isFirstMessageSent) {
+          await createNewSession(msg); // Create the session only if it doesn't already exist
+        }
+
+        // Check if session ID is set correctly
+
+        const chatRes = await axios.post(`${BASE_URL}/ai/chat`, {
+          message: msg,
+          userId,
+          sessionId: activeSessionId || localStorage.getItem("activeSessionId"),
+        });
+
+        const aiMsg = {
+          role: "assistant",
+          content: chatRes.data.response,
+          videos: chatRes.data?.videos || [],
+          necReferences: chatRes.data?.nec_references || [],
+          pdf_links: chatRes.data?.pdf_links || [],
+          steps: chatRes.data?.step_by_step || [],
+          previousUserMsg: msg,
+        };
+        setSuggestions(chatRes?.data?.suggestions || []);
+        setMessages((prev) => [...prev, aiMsg]);
+        scrollToBottom();
+      } catch (error) {
+        console.error("AI response error:", error);
+        setMessages((prev) => [
+          ...prev,
+          { role: "assistant", content: "Sorry, AI service is unavailable right now." },
+        ]);
+      } finally {
+        setLoading(false);
+        scrollToBottom();
       }
-
-      // Check if session ID is set correctly
-
-      const chatRes = await axios.post(`${BASE_URL}/ai/chat`, {
-        message: msg,
-        userId,
-        sessionId: activeSessionId || localStorage.getItem("activeSessionId"),
-      });
-
-      const aiMsg = {
-        role: "assistant",
-        content: chatRes.data.response,
-        videos: chatRes.data?.videos || [],
-        necReferences: chatRes.data?.nec_references || [],
-        steps: chatRes.data?.step_by_step || [],
-        previousUserMsg: msg,
-      };
-   setSuggestions(chatRes?.data?.suggestions || []);
-      setMessages((prev) => [...prev, aiMsg]);
-      scrollToBottom();
-    } catch (error) {
-      console.error("AI response error:", error);
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: "Sorry, AI service is unavailable right now." },
-      ]);
-    } finally {
-      setLoading(false);
-      scrollToBottom();
-    }
-  },
-  [
-    inputValue,
-    chatCount,
-    setShowLimitPopup,
-    setMessages,
-    setInputValue,
-    sendSound,
-    setGuestMessageCount,
-    isFirstMessageSent,
-    createNewSession,
-    userId,
-    activeSessionId,
-    scrollToBottom,
-  ]
-);
+    },
+    [
+      inputValue,
+      chatCount,
+      setShowLimitPopup,
+      setMessages,
+      setInputValue,
+      sendSound,
+      setGuestMessageCount,
+      isFirstMessageSent,
+      createNewSession,
+      userId,
+      activeSessionId,
+      scrollToBottom,
+    ]
+  );
 
 
 
- 
+
   const toggleListening = () => {
     if (!recognitionRef.current) {
       alert("Speech recognition not supported in your browser");
@@ -289,7 +290,7 @@ const ChatbotMain = ({ sessionId, isFirstMessageSent, setIsFirstMessageSent, set
     previousSession(sessionId)
     setActiveSessionId(sessionId);
   }, [sessionId])
- 
+
   useEffect(() => {
     const storedQuery = localStorage.getItem("searchQuery");
     if (storedQuery?.trim()) {
@@ -383,6 +384,17 @@ const ChatbotMain = ({ sessionId, isFirstMessageSent, setIsFirstMessageSent, set
     return () => window.removeEventListener("keydown", handleGlobalEnter);
   }, [inputValue, loading, sendMessage]);
 
+  const handlenecclick = (ref) => {
+    const queryParams = new URLSearchParams({
+      code: ref?.nec_code,
+      description: ref?.description,
+      pdfUrl: ref?.url,
+    }).toString();
+
+    const url = `/nec?${queryParams}`;
+    window.open(url, '_blank');
+  };
+
 
   return (
     <div className="chatbot-main-content mt-2">
@@ -401,8 +413,8 @@ const ChatbotMain = ({ sessionId, isFirstMessageSent, setIsFirstMessageSent, set
         >
           {/* {messages.length === 0 && <p>No conversation yet. Ask me anything!</p>} */}
           {Array.isArray(messages) && messages.length === 0 && (
-  <p>No conversation yet. Ask me anything!</p>
-)}
+            <p>No conversation yet. Ask me anything!</p>
+          )}
 
           {messages?.map((msg, idx) => (
             <div
@@ -481,15 +493,26 @@ const ChatbotMain = ({ sessionId, isFirstMessageSent, setIsFirstMessageSent, set
               )}
 
               {/* Render NEC References if any */}
-              {msg.necReferences && msg?.necReferences?.length > 0 && (
+              {msg?.pdf_links && msg?.pdf_links?.length > 0 && (
                 <div style={{ marginTop: 12, padding: 8, border: '1px solid #ccc', borderRadius: 8, backgroundColor: '#eef2f7' }}>
                   <b>NEC References:</b>
                   <ul style={{ marginTop: 6, paddingLeft: 20 }}>
-                    {msg.necReferences.map((ref, i) => (
+                    {/* {msg.necReferences.map((ref, i) => (
                       <li key={i} style={{ marginBottom: 4 }}>
                         <a href={ref.link} target="_blank" rel="noopener noreferrer" style={{ color: '#007acc' }}>
                           <FaLink color="grey" /> {ref.code}
                         </a>
+                      </li>
+                    ))} */}
+                    {msg?.pdf_links?.map((ref, i) => (
+                      <li
+                        key={i}
+                        className="mb-1 text-primary text-decoration-underline"
+                        style={{ cursor: 'pointer', listStyle: 'none' }}
+                        onClick={() => handlenecclick(ref)}
+                      >
+                        <FaLink className="me-1 text-secondary" />
+                        {ref.nec_code}
                       </li>
                     ))}
                   </ul>

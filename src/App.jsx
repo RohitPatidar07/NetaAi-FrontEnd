@@ -29,6 +29,7 @@ import Unauthorized from "./Dashboard/Unauthorized.jsx";
 import ProtectedRoute from "./ProtectedRoute.jsx";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import ViewNecCode from "./chatbot/NECPage/ViewNecCode.jsx";
 function App() {
 
   const [ip, setIP] = useState('');
@@ -58,6 +59,8 @@ function App() {
           <Route path="/signup" element={<SignUp />} />
           <Route path="/forgotpassword" element={<ForgotPassword />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
+          <Route path="/nec" element={<ViewNecCode />} />
+
           {/* Auth Routes End */}
 
           {/* Setting Routes Start */}
@@ -86,10 +89,10 @@ function App() {
             <Route path="updatepassword" element={<UpdatePassword />} />
             <Route path="chathistory" element={<ChatHistory />} />
             <Route path="openrequest" element={<OpenRequest />} />
-
+            
           </Route>
 
-          <Route element={<ProtectedRoute allowedPermissions={[156] } />}>
+          <Route element={<ProtectedRoute allowedPermissions={[156]} />}>
             <Route path="/dashboard" element={<DashboardLayout />}>
               <Route index element={<Dashboard />} />
               <Route path="allusers" element={<AllUsers />} />
