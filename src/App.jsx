@@ -89,7 +89,7 @@ function App() {
             <Route path="updatepassword" element={<UpdatePassword />} />
             <Route path="chathistory" element={<ChatHistory />} />
             <Route path="openrequest" element={<OpenRequest />} />
-            
+
           </Route>
 
           <Route element={<ProtectedRoute allowedPermissions={[156]} />}>

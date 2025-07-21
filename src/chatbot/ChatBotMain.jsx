@@ -387,13 +387,14 @@ const ChatbotMain = ({ sessionId, isFirstMessageSent, setIsFirstMessageSent, set
   const handlenecclick = (ref) => {
     const queryParams = new URLSearchParams({
       code: ref?.nec_code,
-      description: ref?.description,
-      pdfUrl: ref?.url,
+      urls: JSON.stringify(ref?.urls || []), // Expecting an array of URLs
+      descriptions: JSON.stringify(ref?.descriptions || []), // Expecting an array of descriptions
     }).toString();
 
     const url = `/nec?${queryParams}`;
     window.open(url, '_blank');
   };
+
 
 
   return (
