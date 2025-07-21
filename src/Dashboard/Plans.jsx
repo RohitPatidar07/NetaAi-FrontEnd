@@ -6,8 +6,15 @@ const Plans = () => {
     const [plans, setPlans] = useState([]);
     const [editingId, setEditingId] = useState(null);
     const [editData, setEditData] = useState({});
-    const [newPlan, setNewPlan] = useState({ plan_name: "", price: "", duration: "Monthly", description: "" });
+    const [newPlan, setNewPlan] = useState({ plan_name: "", 
+        price: "", 
+         daily_limit: "" ,
+        duration: "Monthly", 
+        description: "" 
+    });
     const [isModalOpen, setModalOpen] = useState(false);
+
+//  console.log( "EDiting Id" , editingId)
 
     useEffect(() => {
         fetchPlans();
@@ -124,9 +131,9 @@ const Plans = () => {
         <div className="container my-5">
             <h3 className="fw-bold text-center mb-4">Manage Subscription Plans</h3>
             <div className="d-flex justify-content-end mb-4">
-                <button className="btn btn-primary" onClick={() => setModalOpen(true)}>
+                {/* <button className="btn btn-primary" onClick={() => setModalOpen(true)}>
                     Add New Plan
-                </button>
+                </button> */}
             </div>
             {/* Modal for Adding New Plan */}
             {isModalOpen && (
@@ -158,6 +165,16 @@ const Plans = () => {
                                     onChange={handleNewPlanChange}
                                     placeholder="Price"
                                 />
+
+                                <input
+    type="text"
+    className="form-control mb-2"
+    name="daily_limit"
+    value={newPlan.daily_limit}
+    onChange={handleNewPlanChange}
+    placeholder="Daily Limit (Number of Uses)"
+/>
+
                                 <select
                                     className="form-select mb-2"
                                     name="duration"
@@ -168,6 +185,9 @@ const Plans = () => {
                                     <option value="Quarterly">Quarterly</option>
                                     <option value="Yearly">Yearly</option>
                                 </select>
+
+                                
+
                                 <textarea
                                     className="form-control mb-2"
                                     name="description"
@@ -181,9 +201,9 @@ const Plans = () => {
                                 <button className="btn btn-secondary" onClick={() => setModalOpen(false)}>
                                     Close
                                 </button>
-                                {/* <button className="btn btn-success" onClick={handleAddPlan}>
+                                <button className="btn btn-success" onClick={handleAddPlan}>
                                     Add Plan
-                                </button> */}
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -213,6 +233,14 @@ const Plans = () => {
                                             onChange={handleChange}
                                             placeholder="Price"
                                         />
+                                        <input
+    type="text"
+    className="form-control mb-2"
+    name="daily_limit"
+    value={editData.daily_limit}
+    onChange={handleChange}
+    placeholder="Daily Limit"
+/>
                                         <select
                                             className="form-select mb-2"
                                             name="duration"
@@ -254,6 +282,7 @@ const Plans = () => {
                                         </div>
                                         <h4 className="text-dark">${plan.price}</h4>
                                         <p className="text-muted mb-1">Duration: {plan.duration}</p>
+                                          <p className="text-muted mb-1">Chats: {plan?.daily_limit}</p>
                                         <p className="text-muted mb-3">
                                             <strong>Description:</strong> <br />
                                             {plan.description}

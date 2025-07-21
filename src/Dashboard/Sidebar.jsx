@@ -14,9 +14,10 @@ const Sidebar = ({ activeSection, setActiveSection, sidebarOpen, setSidebarOpen 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Activity, path: '' },
     { id: 'allusers', label: 'All Users', icon: Users, path: 'allusers' },
-    // { id: 'adminprofile', label: 'Admin Profile', icon: UserCheck, path: 'adminprofile' },
+  
     { id: 'plans', label: 'Subscription Plan', icon: FaDollarSign, path: 'plans' },
     { id: 'chatbot', label: 'Chat Bot', icon: FileText, path: 'chatbot' },
+      { id: 'adminprofile', label: 'Admin Profile', icon: UserCheck, path: 'adminprofile' },
   ];
 
   const handleNavigation = (id, path) => {

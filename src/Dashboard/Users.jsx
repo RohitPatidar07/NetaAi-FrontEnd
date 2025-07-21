@@ -481,21 +481,21 @@ const AllUsers = () => {
                                             navigate('/dashboard/updateprofile', { state: { userData: user } });
                                         }}>
                                             <div className="d-flex align-items-center">
-                                                {user.image ? (
-                                                    <img 
-                                                        src={user.image} 
-                                                        alt={user.full_name}
-                                                        className="rounded-circle me-3"
-                                                        style={{ width: '40px', height: '40px', objectFit: 'cover' }}
-                                                    />
-                                                ) : (
-                                                    <div className="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3"
-                                                        style={{ width: '40px', height: '40px' }}>
-                                                        <span className="text-white fw-bold">
-                                                            {user.full_name.split(' ').map(n => n[0]).join('')}
-                                                        </span>
-                                                    </div>
-                                                )}
+                                         {user.image && user.image !== "0" ? (
+    <img 
+        src={user.image} 
+        alt={user.full_name}
+        className="rounded-circle me-3"
+        style={{ width: '40px', height: '40px', objectFit: 'cover' }}
+    />
+) : (
+    <div className="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3"
+        style={{ width: '40px', height: '40px' }}>
+        <span className="text-white fw-bold">
+            {user.full_name.split(' ').map(n => n[0]).join('')}
+        </span>
+    </div>
+)}
                                                 <div>
                                                     <div className="fw-medium d-flex align-items-center">
                                                         {user.full_name}
@@ -593,7 +593,7 @@ const AllUsers = () => {
                                         <td> {user.referredBy || 'N/A'}</td>
                                         <td>
                                             <div className="d-flex">
-                                                <a
+                                                {/* <a
                                                     className="btn btn-sm btn-outline-primary me-1"
                                                     href="#"
                                                     onClick={(e) => {
@@ -603,7 +603,7 @@ const AllUsers = () => {
                                                     title="View/Edit User"
                                                 >
                                                     <Eye size={16} />
-                                                </a>
+                                                </a> */}
                                                 <a
                                                     className="btn btn-sm btn-outline-secondary me-1"
                                                     href="#"

@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
   User, Mail, Phone, MapPin, Calendar, Shield, Edit3, Save,
-  X, Camera, Settings, Bell, Lock
+  X, Camera, Settings, Bell, Lock,
+  CheckCircle
 } from 'lucide-react';
 import BASE_URL from '../../config';
 
@@ -16,7 +17,7 @@ const AdminProfile = () => {
   const fetchUserData = async () => {
     try {
       const res = await axios.get(
-        `${BASE_URL}/user/getUserById/13`
+        `${BASE_URL}/user/getUserById/156`
       );
       const user = res.data.data;
 

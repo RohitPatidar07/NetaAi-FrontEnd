@@ -21,9 +21,8 @@ import {
     Crown,
     Gift,
     Activity,
-    UserCheck,
-    UserX,
-    Settings
+    UserCheck,UserX,Settings,Flag,Power,
+    UserPlus
 } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import BASE_URL from '../../config';
@@ -33,9 +32,17 @@ import axios from 'axios';
 const UpdateProfile = () => {
     const location = useLocation();
     const userData = location.state?.userData || {};
-     const token = localStorage.getItem('token');
+const [usageStartDate, setUsageStartDate] = useState('');
+const [usageEndDate, setUsageEndDate] = useState('');
+const [usageFilter, setUsageFilter] = useState('custom'); // 'today', 'week', 'month', 'custom'
+const [totalUsage, setTotalUsage] = useState(null);
 
-     console.log("locUSER Data", userData);
+
+    const token = localStorage.getItem('token');
+    const is_admin = localStorage.getItem('is_admin');
+    const role = is_admin === 1 ? "admin" : "user";
+
+    console.log("locUSER Data", userData);
 
     const [formData, setFormData] = useState({
         full_name: '',
@@ -50,46 +57,27 @@ const UpdateProfile = () => {
     });
 
 
-    const [ comedpedData, setCompedData] = useState({
+    const [comedpedData, setCompedData] = useState({
         compedplan: "",
         duration: "",
-            
+
     });
 
-     const [adminNote, setAdminNote] = useState('');
-      const [flagReason, setFlagReason] = useState('');
+    const [adminNote, setAdminNote] = useState('');
+    const [flagReason, setFlagReason] = useState('');
 
-console.log('User Data:', formData)
-    const [deviceUsage] = useState({
-        web: userData?.device_usage?.includes('web') || false,
-        ios: userData?.device_usage?.includes('ios') || false,
-        android: userData?.device_usage?.includes('android') || false,
-        platform_started: userData?.platform_started || 'web'
-    });
+    console.log('User Data:', formData)
+    // const [deviceUsage] = useState({
+    //     web: userData?.device_usage?.includes('web') || false,
+    //     ios: userData?.device_usage?.includes('ios') || false,
+    //     android: userData?.device_usage?.includes('android') || false,
+    //         platform_started: userData?.platform_started || 'web'
+    // });
 
-    // const fetchUserData = async (userData) => {
-    //     try {
-    //         const res = await axios.get(
-    //             `https://s9687mmz-5008.inc1.devtunnels.ms/api/user/getUserById/${userData?.id}`
-    //         );
-    //         const user = res.data.data;
+     const deviceUsageList = Object.entries(userData?.device_usage || {})
+        .filter(([platform, count]) => count > 0);
 
-    //         // Map API response to profile fields
-    //         setFormData({
-    //             full_name: user.full_name || '',
-    //             email: user.email || '',
-    //             phone_number: user.phone_number || '',
-    //             address: user.address || '',
-    //             organization_name: user.organization_name || '',
-    //             license_number: user.license_number || '',
-    //         });
-
-    //         setProfileImage(user.image);
-
-    //     } catch (err) {
-    //         console.error('Error fetching user data:', err);
-    //     }
-    // };
+  
 
     useEffect(() => {
         setFormData({
@@ -119,6 +107,7 @@ console.log('User Data:', formData)
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitStatus, setSubmitStatus] = useState(null);
     const [profileImage, setProfileImage] = useState(userData?.image || null);
+    const [analyticsData, setAnalyticsData] = useState({});
 
     // Helper functions
     const getDeviceIcon = (platform) => {
@@ -138,10 +127,10 @@ console.log('User Data:', formData)
         if (!plans || !planId) {
             return <span className="badge bg-light text-dark">Free</span>;
         }
-        
+
         const plan = plans.find(p => p.id === parseInt(planId));
         const planName = plan?.plan_name || 'Free';
-        
+
         switch (planName.toLowerCase()) {
             case 'free':
             case 'free tier':
@@ -170,6 +159,7 @@ console.log('User Data:', formData)
         }
     };
 
+    const [selectedCompPlan, setSelectedCompPlan] = useState(formData.plan || '');
     const handleCompUser = async (plan, duration) => {
         try {
             const compEndDate = new Date();
@@ -199,6 +189,21 @@ console.log('User Data:', formData)
             setSubmitStatus('error');
         }
     };
+
+
+    useEffect(() => {
+        const fetchAnalyticData = async (id) => {
+            const response = await axios.get(`${BASE_URL}/admin/analytics/user/${id}`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+            console.log("analytics response", response.data.data);
+            setAnalyticsData(response?.data?.data);
+        }
+
+        fetchAnalyticData(userData.id);
+    }, [userData, userData.id])
 
     const handleInputChange = (field, value) => {
         setFormData(prev => ({
@@ -245,9 +250,9 @@ console.log('User Data:', formData)
         return Object.keys(errors).length === 0;
     };
 
-   const [plans, setPlans] = useState(null);
+    const [plans, setPlans] = useState(null);
 
-   useEffect(() => {
+    useEffect(() => {
         const fetchPlans = async () => {
             try {
                 const response = await axios.get(`${BASE_URL}/plan/subscription-plans`);
@@ -280,7 +285,7 @@ console.log('User Data:', formData)
         newformData.append("licenseNumber", formData.license_number);
         newformData.append("status", formData.status);
         newformData.append("plan", formData.plan); // Send plan ID
-        
+
         if (formData.comped_until) {
             newformData.append("comped_until", formData.comped_until);
         }
@@ -298,10 +303,12 @@ console.log('User Data:', formData)
                 {
                     headers: {
                         "Content-Type": "multipart/form-data",
-                         Authorization: `Bearer ${token}`,
+                        Authorization: `Bearer ${token}`,
                     }
                 }
             );
+
+
 
             if (response.status === 200) {
                 setSubmitStatus('success');
@@ -319,12 +326,20 @@ console.log('User Data:', formData)
 
     const handleComp = async (e) => {
         e.preventDefault();
-        
+
 
 
     }
 
-    const [selectedCompPlan, setSelectedCompPlan] = useState(formData.plan || '');
+    
+  const handleFilterChange = (filter) => {
+    setUsageFilter(filter);
+    if (filter !== 'custom') {
+        setUsageStartDate('');
+        setUsageEndDate('');
+    }
+};
+    const currentPlanName = plans?.find(p => p.id === parseInt(formData.plan))?.plan_name || userData.tier || 'Plan';
 
 
     return (
@@ -341,8 +356,8 @@ console.log('User Data:', formData)
                 {/* Header */}
                 <div className="d-flex justify-content-between align-items-center mb-4">
                     <div>
-                        <h1 className="h2 mb-1">Update Profile</h1>
-                        <p className="text-muted mb-0">Update your personal information and security settings</p>
+                        <h1 className="h2 mb-1">  {userData?.full_name|| 'Profile'}</h1>
+                        {/* <p className="text-muted mb-0">Update your personal information and security settings</p> */}
                     </div>
                     {/* Submit Button */}
                     <div className="text-end mt-4">
@@ -397,7 +412,7 @@ console.log('User Data:', formData)
                                 </div>
                                 <div className="card-body text-center">
                                     <div className="position-relative d-inline-block mb-3">
-                                        {profileImage ? (
+                                        {profileImage  && profileImage !== "0"? (
                                             <img
                                                 src={profileImage}
                                                 alt="Profile"
@@ -412,13 +427,19 @@ console.log('User Data:', formData)
                                                 </span>
                                             </div>
                                         )}
-                                        <button
-                                            type="button"
-                                            className="btn btn-sm btn-primary rounded-circle position-absolute bottom-0 end-10"
-                                            onClick={() => document.getElementById('profileImageInput').click()}
-                                        >
-                                            <Camera size={16} />
-                                        </button>
+
+                                        {userData?.is_admin !== 1 ? ("") :
+                                            (
+                                                <button
+                                                    type="button"
+                                                    className="btn btn-sm btn-primary rounded-circle position-absolute bottom-0 end-10"
+                                                    onClick={() => document.getElementById('profileImageInput').click()}
+                                                >
+                                                    <Camera size={16} />
+                                                </button>
+                                            )
+                                        }
+
                                         <input
                                             id="profileImageInput"
                                             type="file"
@@ -426,14 +447,20 @@ console.log('User Data:', formData)
                                             className="d-none"
                                             onChange={handleImageUpload}
                                         />
+
                                     </div>
+                                      {userData?.is_admin !== 1 ? ("") : (
                                     <p className="text-muted small mb-0">
                                         Click the camera icon to upload a new photo
                                     </p>
-                                    <p className="text-muted small">
+                                    )
+                                      }
+                                    {/* <p className="text-muted small">
                                         JPG, PNG or GIF (max. 5MB)
-                                    </p>
-                                    {profileImage && userData.is_admin !== 1 && (
+                                    </p> */}
+
+
+                                    {/* {profileImage && is_admin !== 1 && (
                                         <button
                                             type="button"
                                             className="btn btn-outline-danger btn-sm mt-2"
@@ -442,7 +469,7 @@ console.log('User Data:', formData)
                                             <X size={16} className="me-1" />
                                             Remove Photo
                                         </button>
-                                    )}
+                                    )} */}
                                 </div>
                             </div>
 
@@ -455,7 +482,6 @@ console.log('User Data:', formData)
                                     </h5>
                                 </div>
                                 <div className="card-body">
-                                    {/* Date Joined */}
                                     <div className="d-flex align-items-center mb-3">
                                         <Calendar size={16} className="text-muted me-2" />
                                         <div>
@@ -470,14 +496,49 @@ console.log('User Data:', formData)
                                         </div>
                                     </div>
 
-                                    {/* Last Active */}
+                                        <div className="d-flex align-items-center mb-3">
+                                        <UserPlus size={16} className="text-muted me-2" />
+                                        <div>
+                                            <small className="text-muted d-block">Referral</small>
+                                            <span className="fw-medium">
+                                                {/* {new Date(userData.created_at).toLocaleDateString('en-US', {
+                                                    year: 'numeric',
+                                                    month: 'long',
+                                                    day: 'numeric'
+                                                })} */}
+
+                                                
+    {userData?.referral || userData?.referredBy || "N/A"}
+
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                     <div className="d-flex align-items-center mb-3">
+                                        <UserPlus size={16} className="text-muted me-2" />
+                                        <div>
+                                            <small className="text-muted d-block">Platform Started</small>
+                                            <span className="fw-medium">
+                                                {/* {new Date(userData.created_at).toLocaleDateString('en-US', {
+                                                    year: 'numeric',
+                                                    month: 'long',
+                                                    day: 'numeric'
+                                                })} */}
+
+                                                
+    {userData?.platform_started || "N/A"}
+
+                                            </span>
+                                        </div>
+                                    </div>
+
                                     <div className="d-flex align-items-center mb-3">
                                         <UserCheck size={16} className="text-muted me-2" />
                                         <div>
                                             <small className="text-muted d-block">Last Active</small>
                                             <span className="fw-medium">
-                                                {userData.last_active 
-                                                    ? new Date(userData.last_active).toLocaleDateString('en-US', {
+                                                {userData.last_active
+                                                    ? new Date(userData?.last_active).toLocaleDateString('en-US', {
                                                         year: 'numeric',
                                                         month: 'short',
                                                         day: 'numeric'
@@ -488,54 +549,47 @@ console.log('User Data:', formData)
                                         </div>
                                     </div>
 
-                                    {/* Device Usage */}
                                     <div className="mb-3">
                                         <small className="text-muted d-block mb-2">Device Usage</small>
                                         <div className="d-flex flex-wrap gap-2">
-                                            {deviceUsage.web && (
-                                                <div className={`badge bg-primary-subtle text-primary d-flex align-items-center ${deviceUsage.platform_started === 'web' ? 'border border-primary' : ''}`}>
-                                                    <Globe size={14} className="me-1" />
-                                                    Web
-                                                    {deviceUsage.platform_started === 'web' && (
-                                                        <span className="ms-1" title="Started here">⭐</span>
-                                                    )}
-                                                </div>
-                                            )}
-                                            {deviceUsage.ios && (
-                                                <div className={`badge bg-success-subtle text-success d-flex align-items-center ${deviceUsage.platform_started === 'ios' ? 'border border-success' : ''}`}>
-                                                    <Smartphone size={14} className="me-1" />
-                                                    iOS
-                                                    {deviceUsage.platform_started === 'ios' && (
-                                                        <span className="ms-1" title="Started here">⭐</span>
-                                                    )}
-                                                </div>
-                                            )}
-                                            {deviceUsage.android && (
-                                                <div className={`badge bg-warning-subtle text-warning d-flex align-items-center ${deviceUsage.platform_started === 'android' ? 'border border-warning' : ''}`}>
-                                                    <Monitor size={14} className="me-1" />
-                                                    Android
-                                                    {deviceUsage.platform_started === 'android' && (
-                                                        <span className="ms-1" title="Started here">⭐</span>
-                                                    )}
-                                                </div>
+                                            {deviceUsageList.length === 0 ? (
+                                                <span className="text-muted">No device usage data</span>
+                                            ) : (
+                                                deviceUsageList.map(([platform, count]) => (
+                                                    <div key={platform} className="badge bg-primary-subtle text-primary d-flex align-items-center">
+                                                        {getDeviceIcon(platform)}
+                                                        {platform.charAt(0).toUpperCase() + platform.slice(1)}: {count}
+                                                    </div>
+                                                ))
                                             )}
                                         </div>
-                                        <small className="text-muted">⭐ Platform where user started</small>
+                                    </div>
+                                    <div className="mb-3">
+                                        <small className="text-muted d-block mb-2">Average Message Per Session</small>
+                                        <span className="d-flex flex-wrap text-black">
+                                            {analyticsData?.avg_messages_per_session || 0}
+                                        </span>
                                     </div>
 
-                                    {/* Login Count */}
-                                    {userData.login_count && (
+                                    {/* {userData.login_count && ( */}
                                         <div className="d-flex align-items-center">
                                             <Settings size={16} className="text-muted me-2" />
                                             <div>
                                                 <small className="text-muted d-block">Total Logins</small>
-                                                <span className="fw-medium">{userData.login_count}</span>
+                                                <span className="fw-medium">{userData?.login_count}</span>
                                             </div>
                                         </div>
-                                    )}
+                                    {/* )} */}
                                 </div>
                             </div>
+                            {/* User Analytics Card */}
+                       
+
                         </div>
+
+
+                        
+   
 
                         {/* Personal Information */}
                         <div className="col-lg-8">
@@ -637,6 +691,76 @@ console.log('User Data:', formData)
                                     </div>
                                 </div>
                             </div>
+                              {/* <div className="card mb-4 col-lg-8">
+  <div className="card-header">
+    <h6 className="mb-2">Total Usage</h6>
+    <div className="d-flex flex-wrap align-items-center gap-2">
+      <button
+        className={`btn btn-sm ${usageFilter === 'today' ? 'btn-primary' : 'btn-outline-primary'}`}
+        onClick={() => handleFilterChange('today')}
+      >
+        Today
+      </button>
+      <button
+        className={`btn btn-sm ${usageFilter === 'week' ? 'btn-primary' : 'btn-outline-primary'}`}
+        onClick={() => handleFilterChange('week')}
+      >
+        This Week
+      </button>
+      <button
+        className={`btn btn-sm ${usageFilter === 'month' ? 'btn-primary' : 'btn-outline-primary'}`}
+        onClick={() => handleFilterChange('month')}
+      >
+        This Month
+      </button>
+      <span className="mx-2 small">or</span>
+      <input
+        type="date"
+        value={usageStartDate || ''}
+        onChange={(e) => {
+          setUsageStartDate(e.target.value);
+          setUsageFilter('custom');
+        }}
+        className="form-control form-control-sm"
+        style={{ maxWidth: '160px' }}
+      />
+      <span className="small">to</span>
+      <input
+        type="date"
+        value={usageEndDate || ''}
+        onChange={(e) => {
+          setUsageEndDate(e.target.value);
+          setUsageFilter('custom');
+        }}
+        className="form-control form-control-sm"
+        style={{ maxWidth: '160px' }}
+      />
+    </div>
+  </div>
+
+  <div className="card-body">
+    {totalUsage ? (
+      <div className="row text-center">
+        <div className="col-md-4 col-12 mb-3 mb-md-0">
+          <h3 className="fw-bold mb-1">{totalUsage.total_sessions ?? 0}</h3>
+          <small className="text-muted">Total Sessions</small>
+        </div>
+        <div className="col-md-4 col-12 mb-3 mb-md-0">
+          <h3 className="fw-bold mb-1">{totalUsage.total_messages ?? 0}</h3>
+          <small className="text-muted">Total Messages</small>
+        </div>
+        <div className="col-md-4 col-12">
+          <h3 className="fw-bold mb-1">{totalUsage.active_users ?? 0}</h3>
+          <small className="text-muted">Active Users</small>
+        </div>
+      </div>
+    ) : (
+      <div className="text-center text-muted py-3">
+        <small>No data for selected period.</small>
+      </div>
+    )}
+  </div>
+</div> */}
 
                             {/* Admin Controls */}
                             <div className="card border-0 shadow-sm mt-4">
@@ -692,7 +816,7 @@ console.log('User Data:', formData)
                                                         </option>
                                                     ))
                                                 }
-                                               
+
                                             </select>
                                         </div>
 
@@ -732,7 +856,7 @@ console.log('User Data:', formData)
                                                     onClick={() => handleCompUser(selectedCompPlan, 30)}
                                                     disabled={!selectedCompPlan}
                                                 >
-                                                    Comp {plans?.find(p => p.id === parseInt(selectedCompPlan))?.plan_name || 'Plan'} (1 month)
+                                                    {plans?.find(p => p.id === parseInt(selectedCompPlan))?.plan_name || 'Plan'}  for (1 month)
                                                 </button>
                                                 <button
                                                     type="button"
@@ -740,7 +864,7 @@ console.log('User Data:', formData)
                                                     onClick={() => handleCompUser(selectedCompPlan, 365)}
                                                     disabled={!selectedCompPlan}
                                                 >
-                                                    Comp {plans?.find(p => p.id === parseInt(selectedCompPlan))?.plan_name || 'Plan'} (1 year)
+                                                    {plans?.find(p => p.id === parseInt(selectedCompPlan))?.plan_name || 'Plan'} for (1 year)
                                                 </button>
                                             </div>
                                             <small className="text-muted">
@@ -750,8 +874,58 @@ console.log('User Data:', formData)
                                     </div>
                                 </div>
                             </div>
+{/* 
+                            <div className="mb-3 ">
+              <h6>Admin Actions</h6>
+              <div className="p-3 bg-light rounded">
+                <div className="mb-2">
+                  <label className="form-label">Add Note</label>
+                  <div className="d-flex">
+                    <input
+                      type="textarea"
+                      className="form-control"
+                      value={adminNote}
+                      row={2}
+                      onChange={(e) => setAdminNote(e.target.value)}
+                      placeholder="Add admin note..."
+                    />
+                    <button className="btn btn-sm btn-primary ms-2" onClick={() => handleAddNote(selectedUser.id)}>
+                      Save
+                    </button>
+                  </div>
+                </div>
+
+                <div className="mb-2">
+                  <label className="form-label">Flag User</label>
+                  <div className="d-flex">
+                    <select
+                      className="form-select form-select-sm"
+                      value={flagReason}
+                      onChange={(e) => setFlagReason(e.target.value)}
+                    >
+                      <option value="">Select reason</option>
+                      <option value="spam">Spam</option>
+                      <option value="inappropriate">Inappropriate Content</option>
+                      <option value="abuse">Abuse</option>
+                    </select>
+                    <button className="btn btn-sm btn-warning ms-2" onClick={() => handleFlagUser(selectedUser.id)}>
+                      <Flag size={14} className="me-1" /> Flag
+                    </button>
+                  </div>
+                </div>
+
+                <button className="btn btn-sm btn-danger w-100" onClick={() => handleDeactivateUser(selectedUser.id)}>
+                  <Power size={14} className="me-1" /> Deactivate User
+                </button>
+              </div>
+            </div> */}
                         </div>
+  
+
                     </div>
+
+                    
+          
 
 
                 </form>

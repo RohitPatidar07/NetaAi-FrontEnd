@@ -20,6 +20,10 @@ const SignUp = () => {
   const [alert, setAlert] = useState({ type: "", message: "" });
   const [loading, setLoading] = useState(false);
 
+  // const isAdmin = localStorage.getItem("admin") === "1";
+const is_admin = localStorage.getItem("admin") === '1';
+  console.log("is_admin",is_admin);
+
   const validate = () => {
     const { full_name, email, password, confirmPassword, phone_number } = formData;
 
@@ -55,8 +59,15 @@ const SignUp = () => {
       const data = response.data;
 
       if (data?.status === "true") {
-        setAlert({ type: "success", message: "Sign up successful! Redirecting..." });
+        setAlert({ type: "success", message: "Sign up successful! " });
+
         setTimeout(() => {
+if (is_admin){
+    setLoading(false);
+      return;
+}
+
+  
           navigate("/login");
         }, 1500);
       } else {
@@ -163,12 +174,12 @@ const SignUp = () => {
           </div>
 
           <div className="mb-3">
-            <label className="form-label">Referred By</label>
+            <label className="form-label">Referral</label>
             <input
               type="text"
               name="referredBy"
               className="form-control"
-              placeholder="Referred By"
+              placeholder="Referral"
               value={formData.referredBy}
               onChange={handleChange}
             />
