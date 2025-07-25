@@ -22,6 +22,8 @@ const ChatbotMain = ({ sessionId, isFirstMessageSent, setIsFirstMessageSent, set
   // const [isFirstMessageSent, setIsFirstMessageSent] = useState(false);
   const [guestMessageCount, setGuestMessageCount] = useState(0);
   const [showLimitPopup, setShowLimitPopup] = useState(false);
+  const [showLimitUpdatePlanPopup, setShowLimitUpdatePlanPopup] = useState(false);
+  const [lastChatDate, setLastChatDate] = useState(""); // Last chat date
   const [suggestions, setSuggestions] = useState([{ title: "What's the different between Afci breaker and a Gfci breaker" },
   { title: "What slice of wire do I need for a 50 amp oven" },
   { title: "⁠Can I use Romex wire in a commercial job" },
@@ -37,7 +39,7 @@ const ChatbotMain = ({ sessionId, isFirstMessageSent, setIsFirstMessageSent, set
   const sendBtnRef = useRef(null);
   const bottomRef = useRef(null);
   const location = useLocation();
-  const chatCount = location.state?.chat_count;
+  // const chatCount = location.state?.chat_count;
 
   const sendSound = new Audio("/sounds/send.mp3");
 
@@ -100,61 +102,180 @@ const ChatbotMain = ({ sessionId, isFirstMessageSent, setIsFirstMessageSent, set
     }
   };
 
-  const scrollToBottom = () => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+  // const scrollToBottom = () => {
+  //   if (scrollRef.current) {
+  //     scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+  //   }
+  // };
+
+
+  // const sendMessage = useCallback(
+  //   async (message) => {
+  //     const msg = message || inputValue;
+  //     if (!msg.trim()) return;
+
+  //     // Limit check
+  //     if (chatCount > 3) {
+  //       setShowLimitPopup(true);
+  //       return;
+  //     }
+
+  //     const isGuest = !localStorage.getItem("user_id");
+  //     if (isGuest) {
+  //       const ip = localStorage.getItem('ip');
+  //       const response = await axios.post(`${BASE_URL}/ip/increase-chat`, { ip });
+  //       const { chat_count } = response.data;
+
+  //       if (isGuest && chat_count >= 3) {
+  //         setShowLimitPopup(true);
+  //         return;
+  //       }
+  //     }
+
+  //     setLoading(true);
+
+  //     try {
+  //       const userMsg = { role: "user", content: msg };
+  //       setMessages((prev) => [...prev, userMsg]);
+  //       setInputValue("");
+  //       sendSound.play();
+
+  //       if (isGuest) {
+  //         setGuestMessageCount((prev) => prev + 1);
+  //       }
+
+  //       // Create a session if none exists
+  //       if (!activeSessionId && !isFirstMessageSent) {
+  //         await createNewSession(msg); // Create the session only if it doesn't already exist
+  //       }
+
+  //       // Check if session ID is set correctly
+
+  //       const chatRes = await axios.post(`${BASE_URL}/ai/chat`, {
+  //         message: msg,
+  //         userId,
+  //         sessionId: activeSessionId || localStorage.getItem("activeSessionId"),
+  //       });
+
+  //       const aiMsg = {
+  //         role: "assistant",
+  //         content: chatRes.data.response,
+  //         videos: chatRes.data?.videos || [],
+  //         necReferences: chatRes.data?.nec_references || [],
+  //         pdf_links: chatRes.data?.pdf_links || [],
+  //         steps: chatRes.data?.step_by_step || [],
+  //         previousUserMsg: msg,
+  //       };
+  //       setSuggestions(chatRes?.data?.suggestions || []);
+  //       setMessages((prev) => [...prev, aiMsg]);
+  //       scrollToBottom();
+  //     } catch (error) {
+  //       console.error("AI response error:", error);
+  //       setMessages((prev) => [
+  //         ...prev,
+  //         { role: "assistant", content: "Sorry, AI service is unavailable right now." },
+  //       ]);
+  //     } finally {
+  //       setLoading(false);
+  //       scrollToBottom();
+  //     }
+  //   },
+  //   [
+  //     inputValue,
+  //     chatCount,
+  //     setShowLimitPopup,
+  //     setMessages,
+  //     setInputValue,
+  //     sendSound,
+  //     setGuestMessageCount,
+  //     isFirstMessageSent,
+  //     createNewSession,
+  //     userId,
+  //     activeSessionId,
+  //     scrollToBottom,
+  //   ]
+  // );
+
+  const [chatCount, setChatCount] = useState(0); // Initialize chatCount state
+  // // other state variables...
+  // useEffect(() => {
+  //   // Fetch initial chat count from local storage or API if needed
+  //   const initialChatCount = localStorage.getItem("chat_count") || 0;
+  //   setChatCount(Number(initialChatCount));
+  // }, []);
+  useEffect(() => {
+    // Check and reset daily chat count if the date has changed
+    const storedLastChatDate = localStorage.getItem("last_chat_date");
+    const currentDate = new Date().toISOString().split("T")[0]; // Get current date in YYYY-MM-DD format
+    if (storedLastChatDate !== currentDate) {
+      // Reset daily chat count if the date has changed
+      setChatCount(0);
+      localStorage.setItem("last_chat_date", currentDate); // Update last chat date
+    } else {
+      // Load the daily chat count from local storage
+      const initialChatCount = localStorage.getItem("chat_count") || 0;
+      setChatCount(Number(initialChatCount));
     }
-  };
+  }, []);
 
 
   const sendMessage = useCallback(
     async (message) => {
       const msg = message || inputValue;
       if (!msg.trim()) return;
-
-      // Limit check
-      if (chatCount > 3) {
-        setShowLimitPopup(true);
-        return;
+      // Retrieve the user's plan ID
+      const planId = localStorage.getItem("plan_id");
+      // Set message limits based on plan ID
+      let messageLimit = 0;
+      if (planId === "5") {
+        messageLimit = 3; // Limit to 3 messages for plan ID 5
+      } else if (planId === "7") {
+        messageLimit = Infinity; // Unlimited messages for plan ID 7
       }
+      // Check if the user has reached their message limit
+
+
 
       const isGuest = !localStorage.getItem("user_id");
       if (isGuest) {
         const ip = localStorage.getItem('ip');
         const response = await axios.post(`${BASE_URL}/ip/increase-chat`, { ip });
         const { chat_count } = response.data;
-
-        if (isGuest && chat_count >= 3) {
+        // Check if the guest user has reached their message limit
+        if (chat_count >= messageLimit) {
           setShowLimitPopup(true);
           return;
         }
+      } else if (chatCount >= messageLimit) {
+        setShowLimitUpdatePlanPopup(true);
+        return;
       }
 
-      setLoading(true);
 
+      setLoading(true);
       try {
         const userMsg = { role: "user", content: msg };
         setMessages((prev) => [...prev, userMsg]);
         setInputValue("");
         sendSound.play();
-
+        // Increment chat count for the user
+        setChatCount((prevCount) => {
+          const newCount = prevCount + 1;
+          localStorage.setItem("chat_count", newCount); // Update local storage
+          return newCount;
+        });
         if (isGuest) {
           setGuestMessageCount((prev) => prev + 1);
         }
-
         // Create a session if none exists
         if (!activeSessionId && !isFirstMessageSent) {
-          await createNewSession(msg); // Create the session only if it doesn't already exist
+          await createNewSession(msg);
         }
-
-        // Check if session ID is set correctly
-
         const chatRes = await axios.post(`${BASE_URL}/ai/chat`, {
           message: msg,
           userId,
           sessionId: activeSessionId || localStorage.getItem("activeSessionId"),
         });
-
         const aiMsg = {
           role: "assistant",
           content: chatRes.data.response,
@@ -166,7 +287,7 @@ const ChatbotMain = ({ sessionId, isFirstMessageSent, setIsFirstMessageSent, set
         };
         setSuggestions(chatRes?.data?.suggestions || []);
         setMessages((prev) => [...prev, aiMsg]);
-        scrollToBottom();
+        // scrollToBottom();
       } catch (error) {
         console.error("AI response error:", error);
         setMessages((prev) => [
@@ -175,13 +296,14 @@ const ChatbotMain = ({ sessionId, isFirstMessageSent, setIsFirstMessageSent, set
         ]);
       } finally {
         setLoading(false);
-        scrollToBottom();
+        // scrollToBottom();
       }
     },
     [
       inputValue,
       chatCount,
       setShowLimitPopup,
+      setShowLimitUpdatePlanPopup,
       setMessages,
       setInputValue,
       sendSound,
@@ -190,11 +312,15 @@ const ChatbotMain = ({ sessionId, isFirstMessageSent, setIsFirstMessageSent, set
       createNewSession,
       userId,
       activeSessionId,
-      scrollToBottom,
+      // scrollToBottom,
     ]
   );
 
-
+  useEffect(() => {
+    if (bottomRef.current) {
+      bottomRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages]);
 
 
   const toggleListening = () => {
@@ -257,14 +383,6 @@ const ChatbotMain = ({ sessionId, isFirstMessageSent, setIsFirstMessageSent, set
       scrollRef.current.scrollBy({ left: 200, behavior: "smooth" });
     }
   };
-  // Most asked questions
-  // const mostAskedQuestion =  [
-  //   { title: "What's the different between Afci breaker and a Gfci breaker" },
-  //   { title: "What slice of wire do I need for a 50 amp oven" },
-  //   { title: "⁠Can I use Romex wire in a commercial job" },
-  //   { title: "NEC 210.10" },
-  //   { title: "Do I need to install a fire rated recessed lights in ADU" },
-  // ];
 
   const [feedback, setFeedback] = useState({});
 
@@ -324,16 +442,7 @@ const ChatbotMain = ({ sessionId, isFirstMessageSent, setIsFirstMessageSent, set
     }
   };
 
-  // const handleThumbsUp = (messageId) => {
-  //   setFeedback("thumbs-up");
-  //   submitFeedback(messageId, "thumbs-up");
-  // };
 
-  // const handleThumbsDown = (messageId) => {
-  //   setFeedback("thumbs-down");
-  //   const reason = prompt("Please explain why this chat is inappropriate:");
-  //   submitFeedback(messageId, "thumbs-down", reason);
-  // };
   const handleThumbsUp = (messageIndex) => {
     const aiMessage = messages[messageIndex];
     if (!aiMessage || aiMessage.role !== "assistant") return;
@@ -400,7 +509,7 @@ const ChatbotMain = ({ sessionId, isFirstMessageSent, setIsFirstMessageSent, set
   return (
     <div className="chatbot-main-content mt-2">
       <h1 className="chatbot-welcome-message text-center ">
-        <img src={NetaLogosmall} alt="NETA AI LOGO" className="mb-3 me-2" height={"40px"} />
+        {/* <img src={NetaLogosmall} alt="NETA AI LOGO" className="mb-3 me-2" height={"40px"} /> */}
         Hey {user_name}
       </h1>
       <div className="chatbot-conversation">
@@ -410,102 +519,120 @@ const ChatbotMain = ({ sessionId, isFirstMessageSent, setIsFirstMessageSent, set
         <div
           className="chatbot-message-container "
           ref={scrollRef}
-          style={{ width: "100%", height: "auto", padding: 10, border: "1px solid #ccc", borderRadius: 8 }}
+          style={{ width: "100%", height: "auto", padding: 10, backgroundColor: "white", borderRadius: 12, overflowY: "auto", maxHeight: "calc(100vh - 200px)" }}
         >
           {/* {messages.length === 0 && <p>No conversation yet. Ask me anything!</p>} */}
           {Array.isArray(messages) && messages.length === 0 && (
-            <p>No conversation yet. Ask me anything!</p>
+            <div className="welcome-screen p-4" id="welcomeScreen">
+              <div className="welcome-icon" style={{ animationPlayState: "running" }}>
+                {/* N */}
+                <img src={NetaLogosmall} alt="NETA AI LOGO" height={"40px"} />
+              </div>
+              <h1 className="welcome-title">Hello {user_name}</h1>
+              <p className="welcome-subtitle">Ask me any NEC or electrical question </p>
+            </div>
+            // <p>No conversation yet. Ask me anything!</p>
           )}
 
           {messages?.map((msg, idx) => (
-            <div
-              key={idx}
-              style={{
-                textAlign: msg.role === "user" ? "right" : "left",
-                margin: "8px 0",
-                // backgroundColor: msg.role === "user" ? "#d1e7dd" : "#f8d7da",
-                backgroundColor: msg.role === "user" ? "#0066FFFF" : "#D7D7D7FF",
-                padding: "8px 12px",
-                borderRadius: 12,
-                maxWidth: "75%",
-                marginLeft: msg.role === "user" ? "auto" : "0",
-                marginRight: msg.role === "user" ? "0" : "auto",
-                whiteSpace: "pre-wrap",
-                width: "auto"
-              }}
-            >
-              {/* <b>{msg.role === "user" ? "You" : "AI"}:</b> {msg.content} */}
-              {msg.role === "user" ? (
-                <b style={{ color: 'white' }}> {msg.content}</b>
-              ) : (
-                <div
-                  style={{
-                    backgroundColor:
-                      feedback[idx] === "like"
-                        ? "#ffe5e5"
-                        : feedback[idx] === "dislike"
+            <div className="d-flex gap-3 align-items-start mb-3" key={idx} style={{ width: "100%" }}  >
+              {msg.role === "user" ? <div class="message-avatar user-avatar">U</div> :
+                <div class="message-avatar bot-avatar">N</div>}
+              <div
+                key={idx}
+                style={{
+                  // textAlign: msg.role === "user" ? "right" : "left",
+                  textAlign: "left",
+                  margin: "8px 0",
+                  // backgroundColor: msg.role === "user" ? "#d1e7dd" : "#f8d7da",
+                  // backgroundColor: msg.role === "user" ? "#0066FFFF" : "#D7D7D7FF",
+                  backgroundColor: "white",
+                  border: "1px solid #ccc",
+                  padding: "8px 12px",
+                  borderRadius: 12,
+                  maxWidth: "75%",
+                  // marginLeft: msg.role === "user" ? "auto" : "0",
+                  // marginRight: msg.role === "user" ? "0" : "auto",
+                  whiteSpace: "pre-wrap",
+                  width: "auto"
+                }}
+              >
+
+                {/* <b>{msg.role === "user" ? "You" : "AI"}:</b> {msg.content} */}
+                {msg.role === "user" ? (
+                  <>
+                    <div ref={bottomRef} />
+                    <b style={{ color: 'grey' }}> {msg.content}</b>
+                  </>
+                ) : (
+                  <div
+                    style={{
+                      backgroundColor:
+                        feedback[idx] === "like"
                           ? "#ffe5e5"
-                          : "inherit",
-                    borderRadius: 12,
-                    // padding: 8,
-                    transition: "background 0.2s",
-                  }}
-                >
-                  {/* <b>AI:</b><br /> */}
-                  {/* <i class="bi bi-robot" style={{ fontSize: "20px" }}></i><br /> */}
-                  {/* <Bot size={18} /><br /> */}
-                  {/* <img src="/public/images/NetaSmallLogo.png" alt="NETA" width={40} /><br /> */}
-                  <img src="/images/netaDown.png" alt="NETA" width={100} /><br />
-                  {/* <strong>Summary : </strong> */}
-                  {msg.content}
+                          : feedback[idx] === "dislike"
+                            ? "#ffe5e5"
+                            : "inherit",
+                      borderRadius: 12,
+                      // padding: 8,
+                      transition: "background 0.2s",
+                    }}
+                  >
+                    {/* <b>AI:</b><br /> */}
+                    {/* <i class="bi bi-robot" style={{ fontSize: "20px" }}></i><br /> */}
+                    {/* <Bot size={18} /><br /> */}
+                    {/* <img src="/public/images/NetaSmallLogo.png" alt="NETA" width={40} /><br /> */}
+                    {/* <img src="/images/netaDown.png" alt="NETA" width={100} /><br /> */}
+                    {/* <strong>Summary : </strong> */}
+                    {msg.content}
 
-                </div>
-              )}
+                  </div>
+                )}
 
-              {msg.necReferences && msg?.necReferences?.length > 0 && (
-                <div style={{ marginTop: 12, backgroundColor: 'transparent' }}>
-                  <b>Relevant NEC Codes</b>
-                  <ul style={{ marginTop: 6, paddingLeft: 20 }}>
-                    {msg.necReferences.map((ref, i) => (
-                      <li key={i} style={{ marginBottom: 4 }}>
-                        {/* <a href={ref.link} target="_blank" rel="noopener noreferrer" style={{ color: '#007acc' }}>
+                {msg.necReferences && msg?.necReferences?.length > 0 && (
+                  <div style={{ marginTop: 12, backgroundColor: 'transparent' }}>
+                    <b>Relevant NEC Codes</b>
+                    <ul style={{ marginTop: 6, paddingLeft: 20 }}>
+                      {msg.necReferences.map((ref, i) => (
+                        <li key={i} style={{ marginBottom: 4 }}>
+                          {/* <a href={ref.link} target="_blank" rel="noopener noreferrer" style={{ color: '#007acc' }}>
                           {ref.code}
                         </a> */}
-                        <p><b>{ref.code}:</b> {ref.description}</p>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+                          <p><b>{ref.code}:</b> {ref.description}</p>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
 
-              {msg.steps && msg?.steps?.length > 0 && (
-                <div style={{ marginTop: 12, backgroundColor: 'transparent' }}>
-                  <b>Step-by-Step Breakdown</b>
-                  <ul style={{ marginTop: 6, paddingLeft: 20 }}>
-                    {msg.steps.map((step, i) => (
-                      <>
-                        <div key={i} style={{ marginBottom: 4 }}>
-                          <p>{step}</p>
-                        </div>
-                      </>
-                    ))}
-                  </ul>
-                </div>
-              )}
+                {msg.steps && msg?.steps?.length > 0 && (
+                  <div style={{ marginTop: 12, backgroundColor: 'transparent' }}>
+                    <b>Step-by-Step Breakdown</b>
+                    <ul style={{ marginTop: 6, paddingLeft: 20 }}>
+                      {msg.steps.map((step, i) => (
+                        <>
+                          <div key={i} style={{ marginBottom: 4 }}>
+                            <p>{step}</p>
+                          </div>
+                        </>
+                      ))}
+                    </ul>
+                  </div>
+                )}
 
-              {/* Render NEC References if any */}
-              {msg?.pdf_links && msg?.pdf_links?.length > 0 && (
-                <div style={{ marginTop: 12, padding: 8, border: '1px solid #ccc', borderRadius: 8, backgroundColor: '#eef2f7' }}>
-                  <b>NEC References:</b>
-                  <ul style={{ marginTop: 6, paddingLeft: 20 }}>
-                    {/* {msg.necReferences.map((ref, i) => (
-                      <li key={i} style={{ marginBottom: 4 }}>
-                        <a href={ref.link} target="_blank" rel="noopener noreferrer" style={{ color: '#007acc' }}>
-                          <FaLink color="grey" /> {ref.code}
-                        </a>
-                      </li>
-                    ))} */}
-                    {msg?.pdf_links?.map((ref, i) => (
+                {/* Render NEC References if any */}
+                {msg?.pdf_links && msg?.pdf_links?.length > 0 && (
+                  <div style={{ marginTop: 12, padding: 8, border: '1px solid #ccc', borderRadius: 8, backgroundColor: '#eef2f7' }}>
+                    <b>NEC References:</b>
+                    <ul style={{ marginTop: 6, paddingLeft: 20 }}>
+                      {msg.necReferences.map((ref, i) => (
+                        <li key={i} style={{ marginBottom: 4 }}>
+                          <a href={ref.link} target="_blank" rel="noopener noreferrer" style={{ color: '#007acc' }}>
+                            <FaLink color="grey" /> {ref.code}
+                          </a>
+                        </li>
+                      ))}
+                      {/* {msg?.pdf_links?.map((ref, i) => (
                       <li
                         key={i}
                         className="mb-1 text-primary text-decoration-underline"
@@ -515,93 +642,75 @@ const ChatbotMain = ({ sessionId, isFirstMessageSent, setIsFirstMessageSent, set
                         <FaLink className="me-1 text-secondary" />
                         {ref.nec_code}
                       </li>
+                    ))} */}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Render YouTube videos if any */}
+                {msg.videos && msg.videos.length > 0 && (
+                  <div style={{ marginTop: 10 }}>
+                    <div style={{ margin: 0, fontWeight: "bold" }}>Releted Youtube Videos </div>
+                    {msg.videos.map((video, vIdx) => (
+                      <div key={vIdx} style={{ marginBottom: 12 }}>
+                        <a
+                          href={video.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="video-link"
+                        >
+                          <img
+                            src={video.thumbnail}
+                            alt={video.title}
+                            className="video-thumbnail"
+                          />
+                          <div className="video-details">
+                            <p className="video-title">{video.title}</p>
+                          </div>
+                        </a>
+                      </div>
                     ))}
-                  </ul>
-                </div>
-              )}
 
-              {/* Render YouTube videos if any */}
-              {msg.videos && msg.videos.length > 0 && (
-                <div style={{ marginTop: 10 }}>
-                  <div style={{ margin: 0, fontWeight: "bold" }}>Releted Youtube Videos </div>
-                  {msg.videos.map((video, vIdx) => (
-                    <div key={vIdx} style={{ marginBottom: 12 }}>
-                      {/* <a
-                        href={video.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none", color: "#000" }}
-                      >
+                  </div>
+                )}
 
-                        <img
-                          src={video.thumbnail}
-                          alt={video.title}
-                          style={{ width: 160, height: 90, borderRadius: 8 }}
-                        />
-                        <div>
-                          <p style={{ margin: 0, fontWeight: "bold" }}>{video.title}</p>
-                        </div>
-                      </a> */}
-                      <a
-                        href={video.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="video-link"
-                      >
-                        <img
-                          src={video.thumbnail}
-                          alt={video.title}
-                          className="video-thumbnail"
-                        />
-                        <div className="video-details">
-                          <p className="video-title">{video.title}</p>
-                        </div>
-                      </a>
-                    </div>
-                  ))}
-                  <div ref={bottomRef} />
-                </div>
-              )}
-
-              {msg.role !== "user" && <div style={{ marginTop: 8, display: "flex", gap: 10 }}>
-                <button
-                  style={{
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    fontSize: 22,
-                    color: feedback[idx] === "like" ? "red" : "#888",
-                    transition: "color 0.2s",
-                  }}
-                  onClick={() => handleThumbsUp(idx)}
-                  title="Like"
-                >
-                  {feedback[idx] === "like" ? <FaThumbsUp /> : <FaRegThumbsUp />}
-                </button>
-                <button
-                  style={{
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    fontSize: 22,
-                    color: feedback[idx] === "dislike" ? "red" : "#888",
-                    transition: "color 0.2s",
-                  }}
-                  onClick={() => handleThumbsDown(idx)}
-                  title="Dislike"
-                >
-                  {feedback[idx] === "dislike" ? <FaThumbsDown /> : <FaRegThumbsDown />}
-                </button>
-              </div>}
+                {msg.role !== "user" && <div style={{ marginTop: 8, display: "flex", gap: 10 }}>
+                  <button
+                    style={{
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      fontSize: 22,
+                      color: feedback[idx] === "like" ? "red" : "#888",
+                      transition: "color 0.2s",
+                    }}
+                    onClick={() => handleThumbsUp(idx)}
+                    title="Like"
+                  >
+                    {feedback[idx] === "like" ? <FaThumbsUp /> : <FaRegThumbsUp />}
+                  </button>
+                  <button
+                    style={{
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      fontSize: 22,
+                      color: feedback[idx] === "dislike" ? "red" : "#888",
+                      transition: "color 0.2s",
+                    }}
+                    onClick={() => handleThumbsDown(idx)}
+                    title="Dislike"
+                  >
+                    {feedback[idx] === "dislike" ? <FaThumbsDown /> : <FaRegThumbsDown />}
+                  </button>
+                </div>}
+              </div>
             </div>
           ))}
 
           {/* {loading && <p>Loading...</p>} */}
           {loading && (
             <div style={{ fontSize: '18px', display: 'inline-flex', alignItems: 'center' }}>
-              {/* <i class="bi bi-robot"></i> */}
-              {/* <img src="/images/netaDown.png" alt="NETA" width={100} /> */}
-              {/* <img src="/images/NetaSmallLogo.png" alt="NETA" width={50} /> */}
               <span className="ms-2" style={{ fontWeight: "bold" }}></span>
               <div
                 style={{
@@ -609,12 +718,19 @@ const ChatbotMain = ({ sessionId, isFirstMessageSent, setIsFirstMessageSent, set
                   marginLeft: '8px',
                 }}
               >
+                <span className="dot" style={{ fontSize: '45px' }}>
+                  •
+                </span>
+                <span className="dot" style={{ fontSize: '45px' }}>
+                  •
+                </span>
+                <span className="dot" style={{ fontSize: '45px' }}>
+                  •
+                </span>
+
+                {/* <span className="dot" style={{ fontSize: '45px' }}> <img src={NetaLogosmall} alt="NETA AI LOGO" className="mb-3 me-2" height={"40px"} /></span>
                 <span className="dot" style={{ fontSize: '45px' }}> <img src={NetaLogosmall} alt="NETA AI LOGO" className="mb-3 me-2" height={"40px"} /></span>
-                <span className="dot" style={{ fontSize: '45px' }}> <img src={NetaLogosmall} alt="NETA AI LOGO" className="mb-3 me-2" height={"40px"} /></span>
-                <span className="dot" style={{ fontSize: '45px' }}> <img src={NetaLogosmall} alt="NETA AI LOGO" className="mb-3 me-2" height={"40px"} /></span>
-                {/* <span className="dot" style={{ fontSize: '45px' }}>.</span>
-                <span className="dot" style={{ fontSize: '45px' }}>.</span>
-                <span className="dot" style={{ fontSize: '45px' }}>.</span> */}
+                <span className="dot" style={{ fontSize: '45px' }}> <img src={NetaLogosmall} alt="NETA AI LOGO" className="mb-3 me-2" height={"40px"} /></span> */}
               </div>
             </div>
           )}
@@ -637,37 +753,25 @@ const ChatbotMain = ({ sessionId, isFirstMessageSent, setIsFirstMessageSent, set
         )
       }
 
+      {
+        showLimitUpdatePlanPopup && (
+          <div className="popup-overlay animated-popup">
+            <div className="popup-content">
+              <h2 className="popup-title">🚀 Message Limit Reached</h2>
+              <p className="popup-subtitle">You can update your plan and keep asking <strong>NETA</strong> anything!</p>
+              <button
+                className="popup-button"
+                onClick={() => navigate("/viewplans")}
+              >
+                Update your Plan
+              </button>
+            </div>
+          </div>
+        )
+      }
+
 
       {/* <div className="chat-scroll-container">
-        <button className="chat-scroll-arrow" onClick={scrollLeft}>
-          <ChevronLeft size={20} />
-        </button>
-        <div
-          className="chat-scroll-list"
-          ref={scrollRef}
-          style={{ display: "flex", overflowX: "auto", gap: 8, padding: "0 10px" }}
-        >
-          {mostAskedQuestion.map((question, index) => (
-            <button
-              key={index}
-              className="chatbot-question-pill"
-              onClick={() => {
-                setInputValue(question.title);
-                setTimeout(() => textareaRef.current?.focus(), 0);
-                sendSound.play();
-              }}
-              style={{ whiteSpace: "nowrap" }}
-            >
-              {question.title}
-            </button>
-          ))}
-        </div>
-        <button className="chat-scroll-arrow" onClick={scrollRight}>
-          <ChevronRight size={20} />
-        </button>
-      </div> */}
-
-      <div className="chat-scroll-container">
         <button className="chat-scroll-arrow" onClick={scrollLeft}>
           <ChevronLeft size={20} />
         </button>
@@ -680,6 +784,7 @@ const ChatbotMain = ({ sessionId, isFirstMessageSent, setIsFirstMessageSent, set
             <button
               key={index}
               className="chatbot-question-pill"
+              // className="chat-history-item"
               onClick={() => {
                 setInputValue(question.title);
                 setTimeout(() => textareaRef.current?.focus(), 0);
@@ -687,14 +792,14 @@ const ChatbotMain = ({ sessionId, isFirstMessageSent, setIsFirstMessageSent, set
                 sendMessage(question.title);
               }}
               style={{
-                whiteSpace: "nowrap",
-                background: "linear-gradient(135deg, #6a11cb, #2575fc)", // Gradient background
-                border: "none",
+                // whiteSpace: "nowrap",
+                // background: "linear-gradient(135deg, #6a11cb, #2575fc)", // Gradient background
+                border: "1px solid #ccc",
                 borderRadius: "20px",
-                color: "#fff",
+                // color: "#fff",
                 padding: "10px 20px",
-                boxShadow: "0 4px 10px rgba(0, 0, 0, 0.2)", // Shadow effect
-                transition: "transform 0.3s, box-shadow 0.3s", // Animation
+                // boxShadow: "0 4px 10px rgba(0, 0, 0, 0.2)", // Shadow effect
+                // transition: "transform 0.3s, box-shadow 0.3s", // Animation
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = "scale(1.05)"; // Scale effect on hover
@@ -712,20 +817,20 @@ const ChatbotMain = ({ sessionId, isFirstMessageSent, setIsFirstMessageSent, set
         <button className="chat-scroll-arrow" onClick={scrollRight}>
           <ChevronRight size={20} />
         </button>
-      </div>
+      </div> */}
 
-      <div className="chatbot-input-area">
-        <div className="chatbot-input-container ">
-          {filePreview && (
+      {/* <div className="chatbot-input-area"> */}
+      {/* <div className="chatbot-input-container "> */}
+      {/* {filePreview && (
             <div className="file-preview-container">
               <img src={filePreview} alt="Preview" className="file-preview-image" />
               <button className="file-remove-btn" onClick={removeFile}>
                 ×
               </button>
             </div>
-          )}
+          )} */}
 
-          {/* <textarea
+      {/* <textarea
             placeholder="Ask me anything in English or Spanish?"
             className="chatbot-input-textarea"
             value={inputValue}
@@ -733,69 +838,43 @@ const ChatbotMain = ({ sessionId, isFirstMessageSent, setIsFirstMessageSent, set
             rows={3}
             style={{ width: "100%", padding: 8, resize: "none" }}
           ></textarea> */}
-          <textarea
-            ref={textareaRef}
-            placeholder="Ask me anything in English or Spanish"
-            className="chatbot-input-textarea"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            rows={3}
-            style={{ width: "100%", padding: 8, resize: "none" }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault(); // Prevent new line
-                if (inputValue.trim() && !loading) {
-                  sendMessage(); // Call your send function
-                }
+      {/* <textarea
+          ref={textareaRef}
+          placeholder="Ask me anything in English or Spanish"
+          // className="chatbot-input-textarea"
+          className="input-field interactive-hover" id="messageInput"
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          rows={3}
+          style={{ width: "100%", padding: 8, resize: "none" }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault(); // Prevent new line
+              if (inputValue.trim() && !loading) {
+                sendMessage(); // Call your send function
               }
-            }}
-          ></textarea>
-
-          {selectedFile && !filePreview && (
-            <div className="file-info-container">
-              <span className="file-icon">📎</span>
-              <span className="file-name">{selectedFile.name}</span>
-              <button className="file-remove-btn" onClick={removeFile}>
-                ×
-              </button>
-            </div>
-          )}
-
-          <div
-            className="chatbot-input-actions mb-3"
-            style={{ height: "8px", marginTop: 10, display: "flex", justifyContent: "space-between" }}
+            }
+          }}
+        ></textarea>
+        <button
+          // className="chatbot-send-btn"
+          className="send-btn interactive-hover" id="sendBtn"
+          disabled={!inputValue.trim() || loading}
+          onClick={() => sendMessage()}
+          title="Send message"
+          ref={sendBtnRef}
+        >
+          <Send />
+        </button> */}
+      {/* <div className="chatbot-input-right-actions justify-content-end mb-2" style={{ display: "flex", gap: 8 }}> */}
+      {/* <button
+            className={`chatbot-model-selector ${isListening ? "listening" : ""}`}
+            onClick={toggleListening}
+            title={isListening ? "Stop listening" : "Start voice input"}
           >
-            <div className="chatbot-input-left-actions">
-              {/* <div className="file-upload-container">
-                <button className="chatbot-input-btn" onClick={() => setIsOpen(!isOpen)}>
-                  <Plus size={16} />
-                </button>
-                {isOpen && (
-                  <div className="file-upload-dropdown">
-                    <ul>
-                      <li onClick={handleFileUploadClick}>
-                        📎 Upload a file
-                        <input
-                          type="file"
-                          ref={fileInputRef}
-                          className="file-input-hidden"
-                          onChange={handleFileChange}
-                        />
-                      </li>
-                    </ul>
-                  </div>
-                )}
-              </div> */}
-            </div>
-            <div className="chatbot-input-right-actions" style={{ display: "flex", gap: 8 }}>
-              <button
-                className={`chatbot-model-selector ${isListening ? "listening" : ""}`}
-                onClick={toggleListening}
-                title={isListening ? "Stop listening" : "Start voice input"}
-              >
-                <Mic size={19} />
-              </button>
-              {/*<button
+            <Mic size={19} />
+          </button> */}
+      {/*<button
                 className="chatbot-send-btn"
                 disabled={!inputValue.trim() || loading}
                 onClick={sendMessage}
@@ -803,19 +882,93 @@ const ChatbotMain = ({ sessionId, isFirstMessageSent, setIsFirstMessageSent, set
               >
                 <Send />
               </button>*/}
-              <button
-                className="chatbot-send-btn"
-                disabled={!inputValue.trim() || loading}
-                onClick={() => sendMessage()}
-                title="Send message"
-                ref={sendBtnRef}
-              >
-                <Send />
-              </button>
-            </div>
+      {/* <button
+            className="chatbot-send-btn"
+            disabled={!inputValue.trim() || loading}
+            onClick={() => sendMessage()}
+            title="Send message"
+            ref={sendBtnRef}
+          >
+            <Send />
+          </button> */}
+      {/* </div> */}
+      {/* {selectedFile && !filePreview && (
+          <div className="file-info-container">
+            <span className="file-icon">📎</span>
+            <span className="file-name">{selectedFile.name}</span>
+            <button className="file-remove-btn" onClick={removeFile}>
+              ×
+            </button>
           </div>
+        )} */}
+
+
+      {/* </div> */}
+      {/* </div> */}
+
+      <div className="input-container ">
+        <div className="input-wrapper">
+          {/* <textarea */}
+          <input
+            ref={textareaRef}
+            placeholder="Ask me anything in English or Spanish"
+            className="input-field interactive-hover"
+            id="messageInput"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                if (inputValue.trim() && !loading) {
+                  sendMessage();
+                }
+              }
+            }}
+          ></input>
+          <button
+            className="send-btn interactive-hover"
+            id="sendBtn"
+            disabled={!inputValue.trim() || loading}
+            onClick={() => sendMessage()}
+            title="Send message"
+            ref={sendBtnRef}
+          >
+            <Send />
+          </button>
+        </div>
+        <div className="action-prompts" id="actionPrompts">
+          {suggestions.slice(0, 3).map((question, index) => (
+            <div
+              key={index}
+              className="quick-prompt"
+              onClick={() => {
+                setInputValue(question.title);
+                setTimeout(() => textareaRef.current?.focus(), 0);
+                sendSound.play();
+                sendMessage(question.title);
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "scale(1.05)";
+                e.currentTarget.style.boxShadow = "0 6px 15px rgba(0, 0, 0, 0.3)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "scale(1)";
+                e.currentTarget.style.boxShadow = "0 4px 10px rgba(0, 0, 0, 0.2)";
+              }}
+              style={{
+                border: "1px solid #ccc",
+                borderRadius: "20px",
+                padding: "10px 20px",
+                cursor: "pointer",
+                transition: "transform 0.3s, box-shadow 0.3s",
+              }}
+            >
+              {question.title}
+            </div>
+          ))}
         </div>
       </div>
+
 
       {/* Your existing CSS (keep as is) */}
       <style jsx>{`

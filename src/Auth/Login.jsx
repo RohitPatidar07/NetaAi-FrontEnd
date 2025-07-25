@@ -36,7 +36,7 @@ const Login = () => {
 
       const data = response.data;
 
-      console.log("LOgin Detaisl" , data);
+      console.log("LOgin Detaisl", data);
 
 
 
@@ -48,17 +48,18 @@ const Login = () => {
         localStorage.setItem("user_id", data?.data?.id)
         localStorage.setItem("email", data?.data?.email);
         localStorage.setItem("user_name", data?.data?.name)
+        localStorage.setItem("plan_id", data?.data?.plan)
         localStorage.setItem("login_count", data?.data?.login_count)
         localStorage.setItem("SHOW_POPUP", "true");
 
         alert("Login successful!");
 
-        if(data?.data?.is_admin === 1){
+        if (data?.data?.is_admin === 1) {
           navigate("/dashboard")
         }
-        else{
+        else {
 
-        navigate("/chatbot");
+          navigate("/chatbot");
         }
 
       } else {

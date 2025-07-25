@@ -91,14 +91,14 @@ const Dashboard = () => {
   const handleFilterChange = (filter) => {
     setUsageFilter(filter);
     if (filter !== 'custom') {
-        setUsageStartDate('');
-        setUsageEndDate('');
+      setUsageStartDate('');
+      setUsageEndDate('');
     }
-};
+  };
 
 
   const fetchTotalUsage = async (start, end) => {
-    console.log("total useAPI", start,end)
+    console.log("total useAPI", start, end)
     try {
       const response = await axios.get(`${BASE_URL}/admin/usage-summary`, {
         params: { start_date: start, end_date: end },
@@ -118,31 +118,31 @@ const Dashboard = () => {
     let start, end;
     const today = new Date();
     if (usageFilter === 'today') {
-        start = end = today.toISOString().split('T')[0];
+      start = end = today.toISOString().split('T')[0];
     } else if (usageFilter === 'week') {
-        const weekAgo = new Date(today);
-        weekAgo.setDate(today.getDate() - 6);
-        start = weekAgo.toISOString().split('T')[0];
-        end = today.toISOString().split('T')[0];
+      const weekAgo = new Date(today);
+      weekAgo.setDate(today.getDate() - 6);
+      start = weekAgo.toISOString().split('T')[0];
+      end = today.toISOString().split('T')[0];
     } else if (usageFilter === 'month') {
-        const monthAgo = new Date(today);
-        monthAgo.setMonth(today.getMonth() - 1);
-        start = monthAgo.toISOString().split('T')[0];
-        end = today.toISOString().split('T')[0];
+      const monthAgo = new Date(today);
+      monthAgo.setMonth(today.getMonth() - 1);
+      start = monthAgo.toISOString().split('T')[0];
+      end = today.toISOString().split('T')[0];
     } else {
-        start = usageStartDate;
-        end = usageEndDate;
+      start = usageStartDate;
+      end = usageEndDate;
     }
     if (start && end) fetchTotalUsage(start, end);
-}, [usageFilter, usageStartDate, usageEndDate]);
+  }, [usageFilter, usageStartDate, usageEndDate]);
 
 
   const getReports = async () => {
-     await axios.get(`${BASE_URL}/admin/getreports/${type}`, {
+    await axios.get(`${BASE_URL}/admin/getreports/${type}`, {
       headers: {
         Authorization: `Bearer ${token}`
       }
-     })
+    })
   }
 
   // Demo data for visualization
@@ -811,76 +811,76 @@ const Dashboard = () => {
               </div>
             </div>
 
-     <div className="card mb-4">
-  <div className="card-header">
-    <h6 className="mb-2">Total Usage</h6>
-    <div className="d-flex flex-wrap align-items-center gap-2">
-      <button
-        className={`btn btn-sm ${usageFilter === 'today' ? 'btn-primary' : 'btn-outline-primary'}`}
-        onClick={() => handleFilterChange('today')}
-      >
-        Today
-      </button>
-      <button
-        className={`btn btn-sm ${usageFilter === 'week' ? 'btn-primary' : 'btn-outline-primary'}`}
-        onClick={() => handleFilterChange('week')}
-      >
-        This Week
-      </button>
-      <button
-        className={`btn btn-sm ${usageFilter === 'month' ? 'btn-primary' : 'btn-outline-primary'}`}
-        onClick={() => handleFilterChange('month')}
-      >
-        This Month
-      </button>
-      <span className="mx-2 small">or</span>
-      <input
-        type="date"
-        value={usageStartDate || ''}
-        onChange={(e) => {
-          setUsageStartDate(e.target.value);
-          setUsageFilter('custom');
-        }}
-        className="form-control form-control-sm"
-        style={{ maxWidth: '160px' }}
-      />
-      <span className="small">to</span>
-      <input
-        type="date"
-        value={usageEndDate || ''}
-        onChange={(e) => {
-          setUsageEndDate(e.target.value);
-          setUsageFilter('custom');
-        }}
-        className="form-control form-control-sm"
-        style={{ maxWidth: '160px' }}
-      />
-    </div>
-  </div>
+            <div className="card mb-4">
+              <div className="card-header">
+                <h6 className="mb-2">Total Usage</h6>
+                <div className="d-flex flex-wrap align-items-center gap-2">
+                  <button
+                    className={`btn btn-sm ${usageFilter === 'today' ? 'btn-primary' : 'btn-outline-primary'}`}
+                    onClick={() => handleFilterChange('today')}
+                  >
+                    Today
+                  </button>
+                  <button
+                    className={`btn btn-sm ${usageFilter === 'week' ? 'btn-primary' : 'btn-outline-primary'}`}
+                    onClick={() => handleFilterChange('week')}
+                  >
+                    This Week
+                  </button>
+                  <button
+                    className={`btn btn-sm ${usageFilter === 'month' ? 'btn-primary' : 'btn-outline-primary'}`}
+                    onClick={() => handleFilterChange('month')}
+                  >
+                    This Month
+                  </button>
+                  <span className="mx-2 small">or</span>
+                  <input
+                    type="date"
+                    value={usageStartDate || ''}
+                    onChange={(e) => {
+                      setUsageStartDate(e.target.value);
+                      setUsageFilter('custom');
+                    }}
+                    className="form-control form-control-sm"
+                    style={{ maxWidth: '160px' }}
+                  />
+                  <span className="small">to</span>
+                  <input
+                    type="date"
+                    value={usageEndDate || ''}
+                    onChange={(e) => {
+                      setUsageEndDate(e.target.value);
+                      setUsageFilter('custom');
+                    }}
+                    className="form-control form-control-sm"
+                    style={{ maxWidth: '160px' }}
+                  />
+                </div>
+              </div>
 
-  <div className="card-body">
-    {totalUsage ? (
-      <div className="row text-center">
-        <div className="col-md-6 col-12 mb-3 mb-md-0">
-          <h3 className="fw-bold mb-1">{totalUsage.total_sessions ?? 0}</h3>
-          <small className="text-muted">Total Sessions</small>
-        </div>
-        <div className="col-md-6 col-12 mb-3 mb-md-0">
-          <h3 className="fw-bold mb-1">{totalUsage.total_messages ?? 0}</h3>
-          <small className="text-muted">Total Messages</small>
-        </div>
-        {/* <div className="col-md-4 col-12">
+              <div className="card-body">
+                {totalUsage ? (
+                  <div className="row text-center">
+                    <div className="col-md-6 col-12 mb-3 mb-md-0">
+                      <h3 className="fw-bold mb-1">{totalUsage.total_sessions ?? 0}</h3>
+                      <small className="text-muted">Total Sessions</small>
+                    </div>
+                    <div className="col-md-6 col-12 mb-3 mb-md-0">
+                      <h3 className="fw-bold mb-1">{totalUsage.total_messages ?? 0}</h3>
+                      <small className="text-muted">Total Messages</small>
+                    </div>
+                    {/* <div className="col-md-4 col-12">
           <h3 className="fw-bold mb-1">{totalUsage.active_users ?? 0}</h3>
           <small className="text-muted">Active Users</small>
         </div> */}
-      </div>
-    ) : (
-      <div className="text-center text-muted py-3">
-        <small>No data for selected period.</small>
-      </div>
-    )}
-  </div>
-</div>
+                  </div>
+                ) : (
+                  <div className="text-center text-muted py-3">
+                    <small>No data for selected period.</small>
+                  </div>
+                )}
+              </div>
+            </div>
 
 
 
@@ -1070,7 +1070,7 @@ const Dashboard = () => {
             </div>
           </div>
 
-          
+
 
 
           {/* Recent Feedbacks */}

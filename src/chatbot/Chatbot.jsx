@@ -129,6 +129,7 @@ const Chatbot = () => {
         setCollapsed={setSidebarCollapsed}
         darkMode={darkMode}
         setSessionId={setSessionId}
+        sessionId={sessionId}
         setIsFirstMessageSent={setIsFirstMessageSent}
         setMessages={setMessages}
       />
