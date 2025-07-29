@@ -50,7 +50,7 @@ const Dashboard = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
-  console.log("Totla , ", totalUsage);
+  // console.log("Totla , ", totalUsage);
   const token = localStorage.getItem('token');
 
 
@@ -98,14 +98,14 @@ const Dashboard = () => {
 
 
   const fetchTotalUsage = async (start, end) => {
-    console.log("total useAPI", start, end)
+    // console.log("total useAPI", start, end)
     try {
       const response = await axios.get(`${BASE_URL}/admin/usage-summary`, {
         params: { start_date: start, end_date: end },
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      console.log(response.data);
+      // console.log(response.data);
 
       setTotalUsage(response.data);
     } catch (error) {
@@ -369,7 +369,7 @@ const Dashboard = () => {
   // Calculate start index for displaying entries
   const startIndex = (currentPage - 1) * itemsPerPage;
 
-  { console.log("Selected User", selectedUser) }
+  // { console.log("Selected User", selectedUser) }
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -405,7 +405,7 @@ const Dashboard = () => {
           },
         });
 
-        console.log("dashAPI !!", response.data)
+        // console.log("dashAPI !!", response.data)
         setdashboardData(response.data);
 
         // setAnalyticsData(response.data);
@@ -419,7 +419,7 @@ const Dashboard = () => {
     fetchAnalytics();
   }, []);
 
-  console.log("Dashboard !!!", dashboardData);
+  // console.log("Dashboard !!!", dashboardData);
 
 
   const stats = [

@@ -82,25 +82,46 @@ const ChatbotMain = ({ sessionId, isFirstMessageSent, setIsFirstMessageSent, set
 
   // Create new session on mount or page refresh
   // Create new session on first message
-  const createNewSession = async (firstMessage) => {
+  // const createNewSession = async (firstMessage) => {
+  //   try {
+  //     if (activeSessionId) return; // If session already exists, do nothing.
+
+  //     const title = firstMessage.substring(0, 30);
+
+  //     // API call to create session only if activeSessionId is null
+  //     const createRes = await axios.post(`${BASE_URL}/ai/sessions`, {
+  //       userId,
+  //       title,
+  //     });
+  //     localStorage.setItem("activeSessionId", createRes.data.sessionId); // Store session ID in localStorage
+  //     setActiveSessionId(createRes.data.sessionId);  // Set the active session ID
+  //     setSessionTitle(title);
+  //     setIsFirstMessageSent(true); // Mark that the first message has been sent
+  //   } catch (error) {
+  //     console.error("Failed to create new session:", error);
+  //   }
+  // };
+
+  const createNewSession = useCallback(async (firstMessage) => {
     try {
-      if (activeSessionId) return; // If session already exists, do nothing.
+      if (activeSessionId) return;
 
       const title = firstMessage.substring(0, 30);
-
-      // API call to create session only if activeSessionId is null
       const createRes = await axios.post(`${BASE_URL}/ai/sessions`, {
         userId,
         title,
       });
-      localStorage.setItem("activeSessionId", createRes.data.sessionId); // Store session ID in localStorage
-      setActiveSessionId(createRes.data.sessionId);  // Set the active session ID
+
+      localStorage.setItem("activeSessionId", createRes.data.sessionId);
+      setActiveSessionId(createRes.data.sessionId);
       setSessionTitle(title);
-      setIsFirstMessageSent(true); // Mark that the first message has been sent
+      setIsFirstMessageSent(true);
     } catch (error) {
       console.error("Failed to create new session:", error);
     }
-  };
+  }, [activeSessionId, userId, setActiveSessionId, setSessionTitle, setIsFirstMessageSent]);
+
+
 
   // const scrollToBottom = () => {
   //   if (scrollRef.current) {
@@ -276,6 +297,8 @@ const ChatbotMain = ({ sessionId, isFirstMessageSent, setIsFirstMessageSent, set
           userId,
           sessionId: activeSessionId || localStorage.getItem("activeSessionId"),
         });
+
+
         const aiMsg = {
           role: "assistant",
           content: chatRes.data.response,
@@ -493,17 +516,41 @@ const ChatbotMain = ({ sessionId, isFirstMessageSent, setIsFirstMessageSent, set
     return () => window.removeEventListener("keydown", handleGlobalEnter);
   }, [inputValue, loading, sendMessage]);
 
+  // const handlenecclick = (ref) => {
+
+  //   console.log(ref);
+
+
+  //   const queryParams = new URLSearchParams({
+  //     code: ref?.code,
+  //     urls: JSON.stringify(ref?.urls || []), // Expecting an array of URLs
+  //     descriptions: JSON.stringify(ref?.descriptions || []), // Expecting an array of descriptions
+  //   }).toString();
+
+  //   const url = `/nec?${queryParams}`;
+  //   window.open(url, '_blank');
+  // };
+
+
   const handlenecclick = (ref) => {
+    // Extract article number from NEC code
+    const match = ref.code.match(/\d+/); // extracts first number like 110
+    const articleNumber = match ? match[0] : null;
+
+    if (!articleNumber) {
+      alert("Invalid NEC code");
+      return;
+    }
+
     const queryParams = new URLSearchParams({
-      code: ref?.nec_code,
-      urls: JSON.stringify(ref?.urls || []), // Expecting an array of URLs
-      descriptions: JSON.stringify(ref?.descriptions || []), // Expecting an array of descriptions
+      code: ref.code,
+      article: articleNumber,
+      description: ref.description || '',
     }).toString();
 
     const url = `/nec?${queryParams}`;
     window.open(url, '_blank');
   };
-
 
 
   return (
@@ -621,15 +668,16 @@ const ChatbotMain = ({ sessionId, isFirstMessageSent, setIsFirstMessageSent, set
                 )}
 
                 {/* Render NEC References if any */}
-                {msg?.pdf_links && msg?.pdf_links?.length > 0 && (
+                {msg?.necReferences && msg?.necReferences?.length > 0 && (
                   <div style={{ marginTop: 12, padding: 8, border: '1px solid #ccc', borderRadius: 8, backgroundColor: '#eef2f7' }}>
                     <b>NEC References:</b>
                     <ul style={{ marginTop: 6, paddingLeft: 20 }}>
                       {msg.necReferences.map((ref, i) => (
                         <li key={i} style={{ marginBottom: 4 }}>
-                          <a href={ref.link} target="_blank" rel="noopener noreferrer" style={{ color: '#007acc' }}>
+                          {/* <a href={ref.link} target="_blank" rel="noopener noreferrer" style={{ color: '#007acc' }}> */}
+                          <div style={{ color: '#007acc', cursor: 'pointer' }} onClick={() => handlenecclick(ref)}>
                             <FaLink color="grey" /> {ref.code}
-                          </a>
+                          </div>
                         </li>
                       ))}
                       {/* {msg?.pdf_links?.map((ref, i) => (
@@ -971,7 +1019,7 @@ const ChatbotMain = ({ sessionId, isFirstMessageSent, setIsFirstMessageSent, set
 
 
       {/* Your existing CSS (keep as is) */}
-      <style jsx>{`
+      <style>{`
         .popup-overlay {
           position: fixed;
           top: 0;

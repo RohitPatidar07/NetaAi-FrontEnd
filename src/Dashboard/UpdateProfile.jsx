@@ -21,7 +21,7 @@ import {
     Crown,
     Gift,
     Activity,
-    UserCheck,UserX,Settings,Flag,Power,
+    UserCheck, UserX, Settings, Flag, Power,
     UserPlus
 } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
@@ -32,17 +32,17 @@ import axios from 'axios';
 const UpdateProfile = () => {
     const location = useLocation();
     const userData = location.state?.userData || {};
-const [usageStartDate, setUsageStartDate] = useState('');
-const [usageEndDate, setUsageEndDate] = useState('');
-const [usageFilter, setUsageFilter] = useState('custom'); // 'today', 'week', 'month', 'custom'
-const [totalUsage, setTotalUsage] = useState(null);
+    const [usageStartDate, setUsageStartDate] = useState('');
+    const [usageEndDate, setUsageEndDate] = useState('');
+    const [usageFilter, setUsageFilter] = useState('custom'); // 'today', 'week', 'month', 'custom'
+    const [totalUsage, setTotalUsage] = useState(null);
 
 
     const token = localStorage.getItem('token');
     const is_admin = localStorage.getItem('is_admin');
     const role = is_admin === 1 ? "admin" : "user";
 
-    console.log("locUSER Data", userData);
+    // console.log("locUSER Data", userData);
 
     const [formData, setFormData] = useState({
         full_name: '',
@@ -66,7 +66,7 @@ const [totalUsage, setTotalUsage] = useState(null);
     const [adminNote, setAdminNote] = useState('');
     const [flagReason, setFlagReason] = useState('');
 
-    console.log('User Data:', formData)
+    // console.log('User Data:', formData)
     // const [deviceUsage] = useState({
     //     web: userData?.device_usage?.includes('web') || false,
     //     ios: userData?.device_usage?.includes('ios') || false,
@@ -74,10 +74,10 @@ const [totalUsage, setTotalUsage] = useState(null);
     //         platform_started: userData?.platform_started || 'web'
     // });
 
-     const deviceUsageList = Object.entries(userData?.device_usage || {})
+    const deviceUsageList = Object.entries(userData?.device_usage || {})
         .filter(([platform, count]) => count > 0);
 
-  
+
 
     useEffect(() => {
         setFormData({
@@ -164,17 +164,17 @@ const [totalUsage, setTotalUsage] = useState(null);
         try {
             const compEndDate = new Date();
             compEndDate.setMonth(compEndDate.getMonth() + duration);
-            
+
             const response = await axios.post(`${BASE_URL}/admin/users/${userData.id}/comp-access`, {
                 plan: plan,
                 comped_until: compEndDate.toISOString().split('T')[0]
             },
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
                 }
-            }
-        );
+            );
 
             if (response.status === 200) {
                 setFormData(prev => ({
@@ -198,7 +198,7 @@ const [totalUsage, setTotalUsage] = useState(null);
                     Authorization: `Bearer ${token}`
                 }
             });
-            console.log("analytics response", response.data.data);
+            // console.log("analytics response", response.data.data);
             setAnalyticsData(response?.data?.data);
         }
 
@@ -331,14 +331,14 @@ const [totalUsage, setTotalUsage] = useState(null);
 
     }
 
-    
-  const handleFilterChange = (filter) => {
-    setUsageFilter(filter);
-    if (filter !== 'custom') {
-        setUsageStartDate('');
-        setUsageEndDate('');
-    }
-};
+
+    const handleFilterChange = (filter) => {
+        setUsageFilter(filter);
+        if (filter !== 'custom') {
+            setUsageStartDate('');
+            setUsageEndDate('');
+        }
+    };
     const currentPlanName = plans?.find(p => p.id === parseInt(formData.plan))?.plan_name || userData.tier || 'Plan';
 
 
@@ -356,7 +356,7 @@ const [totalUsage, setTotalUsage] = useState(null);
                 {/* Header */}
                 <div className="d-flex justify-content-between align-items-center mb-4">
                     <div>
-                        <h1 className="h2 mb-1">  {userData?.full_name|| 'Profile'}</h1>
+                        <h1 className="h2 mb-1">  {userData?.full_name || 'Profile'}</h1>
                         {/* <p className="text-muted mb-0">Update your personal information and security settings</p> */}
                     </div>
                     {/* Submit Button */}
@@ -412,7 +412,7 @@ const [totalUsage, setTotalUsage] = useState(null);
                                 </div>
                                 <div className="card-body text-center">
                                     <div className="position-relative d-inline-block mb-3">
-                                        {profileImage  && profileImage !== "0"? (
+                                        {profileImage && profileImage !== "0" ? (
                                             <img
                                                 src={profileImage}
                                                 alt="Profile"
@@ -449,12 +449,12 @@ const [totalUsage, setTotalUsage] = useState(null);
                                         />
 
                                     </div>
-                                      {userData?.is_admin !== 1 ? ("") : (
-                                    <p className="text-muted small mb-0">
-                                        Click the camera icon to upload a new photo
-                                    </p>
+                                    {userData?.is_admin !== 1 ? ("") : (
+                                        <p className="text-muted small mb-0">
+                                            Click the camera icon to upload a new photo
+                                        </p>
                                     )
-                                      }
+                                    }
                                     {/* <p className="text-muted small">
                                         JPG, PNG or GIF (max. 5MB)
                                     </p> */}
@@ -496,7 +496,7 @@ const [totalUsage, setTotalUsage] = useState(null);
                                         </div>
                                     </div>
 
-                                        <div className="d-flex align-items-center mb-3">
+                                    <div className="d-flex align-items-center mb-3">
                                         <UserPlus size={16} className="text-muted me-2" />
                                         <div>
                                             <small className="text-muted d-block">Referral</small>
@@ -507,14 +507,14 @@ const [totalUsage, setTotalUsage] = useState(null);
                                                     day: 'numeric'
                                                 })} */}
 
-                                                
-    {userData?.referral || userData?.referredBy || "N/A"}
+
+                                                {userData?.referral || userData?.referredBy || "N/A"}
 
                                             </span>
                                         </div>
                                     </div>
 
-                                     <div className="d-flex align-items-center mb-3">
+                                    <div className="d-flex align-items-center mb-3">
                                         <UserPlus size={16} className="text-muted me-2" />
                                         <div>
                                             <small className="text-muted d-block">Platform Started</small>
@@ -525,8 +525,8 @@ const [totalUsage, setTotalUsage] = useState(null);
                                                     day: 'numeric'
                                                 })} */}
 
-                                                
-    {userData?.platform_started || "N/A"}
+
+                                                {userData?.platform_started || "N/A"}
 
                                             </span>
                                         </div>
@@ -572,24 +572,24 @@ const [totalUsage, setTotalUsage] = useState(null);
                                     </div>
 
                                     {/* {userData.login_count && ( */}
-                                        <div className="d-flex align-items-center">
-                                            <Settings size={16} className="text-muted me-2" />
-                                            <div>
-                                                <small className="text-muted d-block">Total Logins</small>
-                                                <span className="fw-medium">{userData?.login_count}</span>
-                                            </div>
+                                    <div className="d-flex align-items-center">
+                                        <Settings size={16} className="text-muted me-2" />
+                                        <div>
+                                            <small className="text-muted d-block">Total Logins</small>
+                                            <span className="fw-medium">{userData?.login_count}</span>
                                         </div>
+                                    </div>
                                     {/* )} */}
                                 </div>
                             </div>
                             {/* User Analytics Card */}
-                       
+
 
                         </div>
 
 
-                        
-   
+
+
 
                         {/* Personal Information */}
                         <div className="col-lg-8">
@@ -691,7 +691,7 @@ const [totalUsage, setTotalUsage] = useState(null);
                                     </div>
                                 </div>
                             </div>
-                              {/* <div className="card mb-4 col-lg-8">
+                            {/* <div className="card mb-4 col-lg-8">
   <div className="card-header">
     <h6 className="mb-2">Total Usage</h6>
     <div className="d-flex flex-wrap align-items-center gap-2">
@@ -835,20 +835,20 @@ const [totalUsage, setTotalUsage] = useState(null);
                                                 </div>
                                             )}
                                             <div className="mb-2">
-    <label className="form-label fw-semibold">Select Plan for Complimentary Access</label>
-    <select
-        className="form-select"
-        value={selectedCompPlan}
-        onChange={e => setSelectedCompPlan(e.target.value)}
-    >
-        <option value="" disabled>Select a plan</option>
-        {plans && plans.map(plan => (
-            <option key={plan.id} value={plan.id}>
-                {plan.plan_name}
-            </option>
-        ))}
-    </select>
-</div>
+                                                <label className="form-label fw-semibold">Select Plan for Complimentary Access</label>
+                                                <select
+                                                    className="form-select"
+                                                    value={selectedCompPlan}
+                                                    onChange={e => setSelectedCompPlan(e.target.value)}
+                                                >
+                                                    <option value="" disabled>Select a plan</option>
+                                                    {plans && plans.map(plan => (
+                                                        <option key={plan.id} value={plan.id}>
+                                                            {plan.plan_name}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
                                             <div className="d-flex gap-2 flex-wrap">
                                                 <button
                                                     type="button"
@@ -874,7 +874,7 @@ const [totalUsage, setTotalUsage] = useState(null);
                                     </div>
                                 </div>
                             </div>
-{/* 
+                            {/* 
                             <div className="mb-3 ">
               <h6>Admin Actions</h6>
               <div className="p-3 bg-light rounded">
@@ -920,12 +920,12 @@ const [totalUsage, setTotalUsage] = useState(null);
               </div>
             </div> */}
                         </div>
-  
+
 
                     </div>
 
-                    
-          
+
+
 
 
                 </form>

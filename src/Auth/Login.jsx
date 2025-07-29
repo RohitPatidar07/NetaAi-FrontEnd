@@ -36,7 +36,7 @@ const Login = () => {
 
       const data = response.data;
 
-      console.log("LOgin Detaisl", data);
+      // console.log("LOgin Detaisl", data);
 
 
 

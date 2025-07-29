@@ -1,4 +1,4 @@
- import { useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./Login.css";
@@ -21,8 +21,8 @@ const SignUp = () => {
   const [loading, setLoading] = useState(false);
 
   // const isAdmin = localStorage.getItem("admin") === "1";
-const is_admin = localStorage.getItem("admin") === '1';
-  console.log("is_admin",is_admin);
+  const is_admin = localStorage.getItem("admin") === '1';
+  // console.log("is_admin",is_admin);
 
   const validate = () => {
     const { full_name, email, password, confirmPassword, phone_number } = formData;
@@ -62,12 +62,12 @@ const is_admin = localStorage.getItem("admin") === '1';
         setAlert({ type: "success", message: "Sign up successful! " });
 
         setTimeout(() => {
-if (is_admin){
-    setLoading(false);
-      return;
-}
+          if (is_admin) {
+            setLoading(false);
+            return;
+          }
 
-  
+
           navigate("/login");
         }, 1500);
       } else {
@@ -98,11 +98,10 @@ if (is_admin){
 
         {alert.message && (
           <div className={`alert alert-${alert.type} d-flex align-items-center`} role="alert">
-            <i className={`me-2 bi ${
-              alert.type === "success" ? "bi-check-circle-fill"
+            <i className={`me-2 bi ${alert.type === "success" ? "bi-check-circle-fill"
               : alert.type === "warning" ? "bi-exclamation-triangle-fill"
-              : "bi-x-circle-fill"
-            }`}></i>
+                : "bi-x-circle-fill"
+              }`}></i>
             <div>{alert.message}</div>
           </div>
         )}
@@ -208,4 +207,3 @@ if (is_admin){
 };
 
 export default SignUp;
- 

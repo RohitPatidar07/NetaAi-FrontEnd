@@ -256,7 +256,6 @@ const Sidebar = ({ collapsed, setCollapsed, darkMode, sessionId, setSessionId, s
         }
 
         @keyframes wave {
-
             0%,
             100% {
                 transform: translate(-50%, -50%) scale(1) rotate(0deg);
@@ -796,6 +795,8 @@ const Sidebar = ({ collapsed, setCollapsed, darkMode, sessionId, setSessionId, s
             border-top: 1px solid var(--border-color);
             box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.05);
             overflow: visible;
+            height: 150px; 
+            margin-bottom: 50px;
         }
 
         .input-wrapper {
@@ -902,20 +903,44 @@ const Sidebar = ({ collapsed, setCollapsed, darkMode, sessionId, setSessionId, s
             padding: 0 4px;
         }
 
+        // .quick-prompt {
+        //     padding: 8px 16px;
+        //     background: var(--bg-secondary);
+        //     border: 1px solid var(--border-color);
+        //     border-radius: 20px;
+        //     color: var(--text-secondary);
+        //     font-size: 14px;
+        //     font-weight: 500;
+        //     cursor: pointer;
+        //     transition: all 0.3s ease;
+        //     white-space: nowrap;
+        //     position: relative;
+        //     overflow: visible;
+        //     z-index: 1;
+        // }
         .quick-prompt {
-            padding: 8px 16px;
-            background: var(--bg-secondary);
+            flex: 1 1 30%; /* Base width of 30% */
+            min-width: 150px; /* Minimum width for smaller screens */
+            max-width: 800px; /* Maximum width for larger screens */
+            color: var(--text-secondary);
+            padding: 10px 20px;
             border: 1px solid var(--border-color);
             border-radius: 20px;
-            color: var(--text-secondary);
-            font-size: 14px;
-            font-weight: 500;
             cursor: pointer;
-            transition: all 0.3s ease;
-            white-space: nowrap;
-            position: relative;
-            overflow: visible;
-            z-index: 1;
+            transition: transform 0.3s, box-shadow 0.3s;
+            margin: 5px; /* Add some margin for spacing */
+        }
+
+        /* Media Queries for further adjustments */
+        @media (max-width: 768px) {
+            .quick-prompt {
+                flex: 1 1 45%; /* Adjust base width for smaller screens */
+            }
+        }
+        @media (max-width: 480px) {
+            .quick-prompt {
+                flex: 1 1 100%; /* Full width on very small screens */
+            }
         }
 
         .quick-prompt::before {
@@ -943,14 +968,38 @@ const Sidebar = ({ collapsed, setCollapsed, darkMode, sessionId, setSessionId, s
         }
 
         /* Action prompts under input */
+        // .action-prompts {
+        //     display: flex;
+        //     gap: 8px;
+        //     margin-top: 12px;
+        //     justify-content: center;
+        //     flex-wrap: wrap;
+        //     overflow: visible;
+        //     padding: 0 4px;
+        // }
+
         .action-prompts {
             display: flex;
-            gap: 8px;
-            margin-top: 12px;
-            justify-content: center;
             flex-wrap: wrap;
-            overflow: visible;
-            padding: 0 4px;
+            justify-content: center;
+            margin: 0 auto; 
+        }
+
+        @media (max-width: 768px) {
+            .action-prompts {
+                display: none; /* Hide on mobile */
+            }
+
+            .input-container {
+                padding: 24px 32px 32px;
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(10px);
+                border-top: 1px solid var(--border-color);
+                box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.05);
+                overflow: visible;
+                height: 50px; 
+                margin-bottom: 50px;
+            }
         }
 
         /* Typing indicator */
